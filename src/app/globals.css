@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&family=Fira+Code:wght@400;600&family=Caveat:wght@400;600&display=swap');
+@import "tailwindcss";
+
+:root {
+  --f-display: 'Newsreader', Georgia, serif;
+  --f-body: 'Newsreader', Georgia, serif;
+  --f-mono: 'Fira Code', 'Courier New', monospace;
+  --f-hand: 'Caveat', cursive;
+}
+
+.theme-light {
+  --canvas: #fcfaf7;
+  --canvas-card: #f8f6f2;
+  --canvas-code: #f4f2ee;
+  --canvas-hover: #f0ede8;
+  --canvas-tag: #eeebe5;
+  --nav-bg: rgba(252, 250, 247, 0.93);
+  --ink: #1a1714;
+  --ink-soft: rgba(26, 23, 20, 0.65);
+  --ink-faint: rgba(26, 23, 2);
+  --rule: rgba(26, 23, 20, 0.1);
+  --rule-dark: rgba(26, 23, 20, 0.22);
+  --accent-link: #0969da;
+  --annotation: #7a6a50;
+  --tok-kw: #c96f72;
+  --tok-str: #6a9e5f;
+  --tok-comment: #8d9fa8;
+  --tok-num: #c08050;
+  --tok-type: #7a5fb0;
+  --tok-ident: #5a82b0;
+}
+
+.theme-dark {
+  --canvas: #0d1117;
+  --canvas-card: #161b22;
+  --canvas-code: #1c2128;
+  --canvas-hover: #21262d;
+  --canvas-tag: #262c35;
+  --nav-bg: rgba(13, 17, 23, 0.93);
+  --ink: #e6edf3;
+  --ink-soft: rgba(230, 237, 243, 0.72);
+  --ink-faint: rgba(230, 237, 243, 0.58);
+  --rule: rgba(240, 246, 252, 0.1);
+  --rule-dark: rgba(240, 246, 252, 0.18);
+  --accent-link: #79b8ff;
+  --annotation: #b8a890;
+  --tok-kw: #ff7b72;
+  --tok-str: #a5d6a7;
+  --tok-comment: #6e7681;
+  --tok-num: #f2cc60;
+  --tok-type: #c792ea;
+  --tok-ident: #79b8ff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 125%;
+}
+
+html,
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+input,
+textarea {
+  color: var(--ink);
+  background: var(--canvas-code);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-faint);
+}
+
+::selection {
+  background: rgba(49, 120, 198, 0.2);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rule-dark);
+  border-radius: 3px;
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
