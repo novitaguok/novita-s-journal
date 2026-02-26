@@ -1,4 +1,5 @@
 "use client";
+import { TAG_COLORS } from "@/src/lib/data";
 import React from "react";
 
 export function Rule({
@@ -254,5 +255,50 @@ export function WashBlob({
         filter={`url(#${id})`}
       />
     </svg>
+  );
+}
+
+export function TagBadge({ tag }: { tag: string }) {
+  const c = TAG_COLORS[tag] ?? {
+    bg: "var(--canvas-tag)",
+    text: "var(--ink-faint)",
+  };
+  return (
+    <span
+      style={{
+        fontFamily: "var(--f-mono)",
+        fontSize: "0.58rem",
+        fontWeight: 600,
+        padding: "0.15rem 0.4rem",
+        borderRadius: 4,
+        background: c.bg,
+        color: c.text,
+      }}
+    >
+      {tag}
+    </span>
+  );
+}
+
+export function Skeleton({
+  height = 20,
+  width = "100%",
+  style = {},
+}: {
+  height?: number;
+  width?: number | string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div
+      style={{
+        height,
+        width,
+        background: "var(--canvas-card)",
+        borderRadius: 4,
+        animation: "pulse 1.5s ease-in-out infinite",
+        ...style,
+      }}
+    />
   );
 }

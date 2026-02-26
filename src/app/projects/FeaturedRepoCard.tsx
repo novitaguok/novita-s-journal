@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Project } from "../../types";
 import { STATUS_META } from "../../lib/data";
-import { CodeBlock } from "../ui/Shared";
+import { CodeBlock } from "@/src/components/Shared";
 
 export default function FeaturedRepoCard({
   project: p,
@@ -17,6 +17,7 @@ export default function FeaturedRepoCard({
   const sm = STATUS_META[p.status];
   return (
     <div
+      onClick={() => window.open(`https://github.com/${p.repo}`, "_blank")}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
@@ -29,6 +30,7 @@ export default function FeaturedRepoCard({
           ? "0 8px 32px rgba(0,0,0,0.07)"
           : "0 1px 4px rgba(0,0,0,0.03)",
         transform: hov ? "translateY(-3px)" : "none",
+        cursor: "pointer",
       }}
     >
       <CodeBlock
@@ -110,7 +112,10 @@ export default function FeaturedRepoCard({
             </div>
           </div>
           <button
-            onClick={onToggle}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
             style={{
               fontFamily: "var(--f-mono)",
               fontSize: "0.6rem",

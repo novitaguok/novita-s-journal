@@ -4,31 +4,36 @@ export interface Article {
   id: number;
   slug: string;
   title: string;
-  date: string;
   tag: string;
   excerpt: string;
-  readTime: string;
-  lines: number;
+  body: string;
+  readTime: number;
   views: number;
-  preview: string;
+  isPublished: boolean;
+  publishedAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
+export type ArticleListItem = Omit<Article, "body">;
 
 export interface Project {
   id: number;
   repo: string;
   title: string;
   desc: string;
-  longDesc: string;
+  longDesc: string | null;
   stack: string[];
   lang: string;
   langColor: string;
   stars: number;
   forks: number;
+  status: "active" | "stable" | "archived";
+  isPinned: boolean;
+  demoUrl?: string;
   year: string;
   snippet: string;
-  pinned: boolean;
-  status: "active" | "stable" | "archived";
-  demoUrl?: string;
+  sortOrder: number;
+  createdAt: string;
 }
 
 export interface About {
