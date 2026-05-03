@@ -1,11 +1,7 @@
 "use client";
-import { Section } from "../../types";
+import { Section } from "../types";
 
-export default function Footer({
-  setActive,
-}: {
-  setActive: (s: Section) => void;
-}) {
+export default function Footer() {
   return (
     <footer
       style={{ borderTop: "1px solid var(--rule)", padding: "2rem 2.5rem" }}

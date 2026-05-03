@@ -1,8 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { ARTICLES, TAG_COLORS } from "../../lib/data";
-import { Rule, Annotation, CodeBlock } from "../../components/ui/Shared";
+import { useState, useMemo, useEffect } from "react";
+import { TAG_COLORS } from "../../lib/data";
+import {
+  Rule,
+  Annotation,
+  CodeBlock,
+  Skeleton,
+  TagBadge,
+} from "../../components/Shared";
+import { ArticleListItem } from "@/src/types";
+import Link from "next/link";
 
 const pageWrapper: React.CSSProperties = {
   paddingTop: "52px",
@@ -128,6 +136,32 @@ function tagButtonStyle(tag: string, isActive: boolean): React.CSSProperties {
   };
 }
 
+function useDebounce(value: string, delay = 300) {
+  const [debounce, setDebounce] = useState(value);
+
+  useEffect(() => {
+    const timeOut = setTimeout(() => setDebounce(value), delay);
+    return () => clearTimeout(timeOut);
+  }, [value, delay]);
+
+  return debounce;
+}
+
+async function fetchArticles(
+  tag: string,
+  searchQ: string,
+): Promise<ArticleListItem[]> {
+  const param = new URLSearchParams();
+
+  if (tag !== "all") param.set("tag", tag);
+  if (searchQ) param.set("search", searchQ);
+
+  const res = await fetch(`/api/articles?${param}`); // TODO: put in a constant class
+  const json = await res.json();
+
+  return json.data ?? [];
+}
+
 function articleCardStyle(
   isHovered: boolean,
   borderColor: string,
@@ -165,26 +199,22 @@ const articleTitle: React.CSSProperties = {
   marginBottom: "0.4rem",
 };
 
-export default function Articles() {
-  const [search, setSearch] = useState("");
+export default function ArticleListPage() {
+  const [searchQ, setSearchQ] = useState("");
   const [activeTag, setActiveTag] = useState<string>("all");
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [articleList, setArticleList] = useState<ArticleListItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const filtered = useMemo(
-    () =>
-      ARTICLES.filter((article) => {
-        const matchesTag = activeTag === "all" || article.tag === activeTag;
-        const query = search.toLowerCase();
-        const matchesSearch =
-          !search ||
-          article.title.toLowerCase().includes(query) ||
-          article.excerpt.toLowerCase().includes(query);
-        return matchesTag && matchesSearch;
-      }),
-    [search, activeTag],
-  );
+  const debounceSearchQ = useDebounce(searchQ);
 
-  const showResultCount = search || activeTag !== "all";
+  useEffect(() => {
+    setLoading(true);
+    fetchArticles(activeTag, debounceSearchQ).then((data) => {
+      setArticleList(data);
+      setLoading(false);
+    });
+  }, [activeTag, debounceSearchQ]);
 
   return (
     <div style={pageWrapper}>
@@ -193,12 +223,11 @@ export default function Articles() {
         <div style={headerRow}>
           <h2 style={heading}>writing/</h2>
           <span style={headingAnnotation}>
-            things I figured out ({ARTICLES.length} posts)
+            things I figured out ({articleList.length} posts)
           </span>
         </div>
         <Rule style={{ marginBottom: "1.5rem" }} />
 
-        {/* Search + filter toolbar */}
         <div style={toolbar}>
           <div style={searchBox}>
             <svg
@@ -209,21 +238,20 @@ export default function Articles() {
             >
               <path d={SEARCH_ICON_PATH} />
             </svg>
-
             <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchQ}
+              onChange={(e) => setSearchQ(e.target.value)}
               placeholder="search articles..."
               style={searchInput}
             />
-
-            {search && (
-              <button onClick={() => setSearch("")} style={clearButton}>
+            {searchQ && (
+              <button onClick={() => setSearchQ("")} style={clearButton}>
                 ✕
               </button>
             )}
           </div>
 
+          {/* Tag filters */}
           <div style={tagGroup}>
             {TAGS.map((tag) => (
               <button
@@ -237,82 +265,138 @@ export default function Articles() {
           </div>
         </div>
 
-        {/* Results count */}
-        {showResultCount && (
+        {/* Count */}
+        {!loading && (searchQ || activeTag !== "all") && (
           <p style={resultCount}>
-            {filtered.length} result{filtered.length !== 1 ? "s" : ""}
-            {search ? ` for "${search}"` : ""}
+            {articleList.length} result{articleList.length !== 1 ? "s" : ""}
+            {searchQ ? ` for "${searchQ}"` : ""}
           </p>
         )}
 
-        {/* Article list */}
+        {/* List */}
         <div style={listWrapper}>
-          {filtered.length === 0 ? (
-            <div style={emptyState}>
-              <div style={emptyLabel}>no results found</div>
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "1.5rem",
+                  border: "1px solid var(--rule)",
+                  borderRadius: 8,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    marginBottom: "0.6rem",
+                  }}
+                >
+                  <Skeleton height={18} width={70} />
+                  <Skeleton height={18} width={90} />
+                </div>
+                <Skeleton
+                  height={22}
+                  width="70%"
+                  style={{ marginBottom: "0.4rem" }}
+                />
+                <Skeleton height={16} width="90%" />
+              </div>
+            ))
+          ) : articleList.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "3rem 0" }}>
+              <p
+                style={{
+                  fontFamily: "var(--f-mono)",
+                  fontSize: "0.8rem",
+                  color: "var(--ink-faint)",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                no results found
+              </p>
               <Annotation
                 text="try a different search?"
                 style={{ justifyContent: "center" }}
               />
             </div>
           ) : (
-            filtered.map((article) => {
-              const tagColor = TAG_COLORS[article.tag];
-              const isHovered = hoveredId === article.id;
-
-              return (
+            articleList.map((article) => (
+              <Link
+                key={article.id}
+                href={`/articles/${article.slug}`}
+                style={{ textDecoration: "none" }}
+              >
                 <div
-                  key={article.id}
                   onMouseEnter={() => setHoveredId(article.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  style={articleCardStyle(isHovered, tagColor.text)}
+                  style={articleCardStyle(
+                    hoveredId === article.id,
+                    TAG_COLORS[article.tag].text,
+                  )}
+                  // style={{
+                  //   borderLeft: `3px solid ${hoveredId === article.id ? "var(--accent)" : "var(--rule)"}`,
+                  //   padding: "1.25rem",
+                  //   background:
+                  //     hoveredId === article.id
+                  //       ? "var(--canvas-hover)"
+                  //       : "transparent",
+                  //   borderRadius: "0 8px 8px 0",
+                  //   transition: "all 0.2s ease",
+                  //   cursor: "pointer",
+                  // }}
                 >
-                  {/* Meta row */}
-                  <div style={metaRow}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.6rem",
+                      marginBottom: "0.4rem",
+                    }}
+                  >
+                    <TagBadge tag={article.tag} />
                     <span
                       style={{
-                        ...mono058,
-                        fontWeight: 600,
-                        padding: "0.15rem 0.4rem",
-                        borderRadius: "4px",
-                        background: tagColor.bg,
-                        color: tagColor.text,
+                        fontFamily: "var(--f-mono)",
+                        fontSize: "0.58rem",
+                        color: "var(--ink-faint)",
                       }}
                     >
-                      {article.tag}
+                      {new Date(article.publishedAt).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
                     </span>
-                    <span style={mono058}>{article.date}</span>
-                    <span style={{ ...mono058, marginLeft: "auto" }}>
-                      {article.readTime}m · {article.lines} lines ·{" "}
-                      {article.views.toLocaleString()} views
+                    <span
+                      style={{
+                        fontFamily: "var(--f-mono)",
+                        fontSize: "0.58rem",
+                        color: "var(--ink-faint)",
+                        marginLeft: "auto",
+                      }}
+                    >
+                      {article.readTime}m · {article.views.toLocaleString()}{" "}
+                      views
                     </span>
                   </div>
-
                   <h3 style={articleTitle}>{article.title}</h3>
-
                   <p
                     style={{
                       fontFamily: "var(--f-body)",
                       fontSize: "0.84rem",
                       lineHeight: 1.65,
                       color: "var(--ink-soft)",
-                      marginBottom: isHovered ? "0.85rem" : "0",
                     }}
                   >
                     {article.excerpt}
                   </p>
-
-                  {isHovered && (
-                    <CodeBlock
-                      code={article.preview}
-                      lang={article.tag === "engineering" ? "ts" : "css"}
-                      compact
-                      style={{ marginTop: "0.25rem" }}
-                    />
-                  )}
                 </div>
-              );
-            })
+              </Link>
+            ))
           )}
         </div>
       </div>

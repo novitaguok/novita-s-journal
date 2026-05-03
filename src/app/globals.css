@@ -65,10 +65,11 @@ html {
 
 html,
 body {
-  background: var(--canvas);
-  color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  background: var(--canvas, #fcfaf7);
+  color: var(--ink, #1a1714);
   transition: background 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
 }
 
 input,

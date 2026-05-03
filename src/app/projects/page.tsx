@@ -1,20 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { PROJECTS, STATUS_META } from "../../lib/data";
-import { Rule } from "../../components/ui/Shared";
-import MiniRepoCard from "../../components/projects/MiniRepoCard";
-import FeaturedRepoCard from "../../components/projects/FeaturedRepoCard";
+import { useEffect, useState, useMemo } from "react";
+import { STATUS_META } from "../../lib/data";
+import { Rule } from "../../components/Shared";
 
-const STATUS_FILTERS = ["all", "active", "stable", "archived"] as const;
-type StatusFilter = (typeof STATUS_FILTERS)[number];
+import { Project } from "@/src/types";
+import FeaturedRepoCard from "./FeaturedRepoCard";
+import MiniRepoCard from "./MiniRepoCard";
 
-const LANGUAGE_BREAKDOWN = [
-  { lang: "TypeScript", pct: 65, color: "#3178c6" },
-  { lang: "Rust", pct: 20, color: "#dea584" },
-  { lang: "CSS", pct: 10, color: "#563d7c" },
-  { lang: "Other", pct: 5, color: "var(--rule-dark)" },
-];
+const FILTERS = ["all", "active", "stable", "archived"] as const;
+type Filter = (typeof FILTERS)[number];
+
+// dynamically generated instead of hardcoded
 
 const pageWrapper: React.CSSProperties = {
   paddingTop: "52px",
@@ -120,21 +117,83 @@ function langBarSegmentRadius(index: number, total: number): string {
   return "0";
 }
 
-export default function Projects() {
-  const [filter, setFilter] = useState<StatusFilter>("all");
+function useDebounce(value: string, delay = 300) {
+  const [debounce, setDebounce] = useState(value);
+
+  useEffect(() => {
+    const timeOut = setTimeout(() => setDebounce(value), delay);
+    return () => clearTimeout(timeOut);
+  }, [value, delay]);
+
+  return debounce;
+}
+
+async function fetchProjects(tag: string, searchQ: string): Promise<Project[]> {
+  const param = new URLSearchParams();
+
+  if (tag !== "all") param.set("tag", tag);
+  if (searchQ) param.set("search", searchQ);
+
+  const res = await fetch(`/api/projects?${param}`);
+  const json = await res.json();
+
+  return json.data ?? [];
+}
+
+export default function ProjectListPage() {
+  const [filter, setFilter] = useState<Filter>("all");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  const [searchQ, setSearchQ] = useState("");
+  const [activeTag, setActiveTag] = useState<string>("all");
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [projectList, setProjectList] = useState<Project[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const debounceSearchQ = useDebounce(searchQ);
+
+  const languageBreakdown = useMemo(() => {
+    if (!projectList.length) return [];
+    
+    const counts: Record<string, { count: number; color: string }> = {};
+    let total = 0;
+    
+    projectList.forEach(p => {
+      const l = p.lang || "Markdown";
+      if (!counts[l]) {
+        counts[l] = { count: 0, color: p.langColor || "#8b949e" };
+      }
+      counts[l].count += 1;
+      total += 1;
+    });
+    
+    return Object.entries(counts)
+      .map(([lang, { count, color }]) => ({
+        lang,
+        pct: Math.round((count / total) * 100),
+        color,
+      }))
+      .sort((a, b) => b.pct - a.pct);
+  }, [projectList]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchProjects(activeTag, debounceSearchQ).then((data) => {
+      setProjectList(data);
+      setLoading(false);
+    });
+  }, [activeTag, debounceSearchQ]);
 
   const visible =
     filter === "all"
-      ? PROJECTS
-      : PROJECTS.filter((project) => project.status === filter);
-  const pinned = visible.filter((project) => project.pinned);
-  const rest = visible.filter((project) => !project.pinned);
+      ? projectList
+      : projectList.filter((project) => project.status === filter);
+  const pinned = visible.filter((project) => project.isPinned);
+  const rest = visible.filter((project) => !project.isPinned);
 
-  const totalStars = PROJECTS.reduce(
-    (sum, project) => sum + project.stars,
-    0,
-  ).toLocaleString();
+  const totalStars = projectList
+    .reduce((sum, project) => sum + project.stars, 0)
+    .toLocaleString();
 
   return (
     <div style={pageWrapper}>
@@ -143,14 +202,14 @@ export default function Projects() {
         <div style={headerRow}>
           <h2 style={heading}>work/</h2>
           <span style={headingAnnotation}>
-            {PROJECTS.length} repos, {totalStars} total stars
+            {projectList.length} repos, {totalStars} total stars
           </span>
         </div>
         <Rule style={{ marginBottom: "1.5rem" }} />
 
         {/* Status filters */}
         <div style={filterGroup}>
-          {STATUS_FILTERS.map((status) => (
+          {FILTERS.map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
@@ -211,12 +270,27 @@ export default function Projects() {
           </div>
         )}
 
+        {/* Empty state */}
+        {visible.length === 0 && !loading && (
+          <div
+            style={{
+              padding: "4rem 0",
+              textAlign: "center",
+              fontFamily: "var(--f-mono)",
+              fontSize: "0.85rem",
+              color: "var(--ink-faint)",
+            }}
+          >
+            No {filter !== "all" ? filter : ""} repositories found.
+          </div>
+        )}
+
         {/* Language breakdown chart */}
         <div style={{ marginTop: "3rem" }}>
           <Rule label="language breakdown" style={{ marginBottom: "1rem" }} />
 
           <div style={langLegend}>
-            {LANGUAGE_BREAKDOWN.map((item) => (
+            {languageBreakdown.map((item) => (
               <div
                 key={item.lang}
                 style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}
@@ -237,7 +311,7 @@ export default function Projects() {
           </div>
 
           <div style={langBar}>
-            {LANGUAGE_BREAKDOWN.map((item, index) => (
+            {languageBreakdown.map((item, index) => (
               <div
                 key={item.lang}
                 style={{
@@ -245,7 +319,7 @@ export default function Projects() {
                   background: item.color,
                   borderRadius: langBarSegmentRadius(
                     index,
-                    LANGUAGE_BREAKDOWN.length,
+                    languageBreakdown.length,
                   ),
                 }}
               />

@@ -1,6 +1,6 @@
-import { Rule, CodeBlock, Annotation } from "../../components/ui/Shared";
-import Contact from "../../components/about/Contact";
+import { Rule, CodeBlock, Annotation } from "../../components/Shared";
 import { Section } from "../../types";
+import Contact from "./Contact";
 
 const PROFILE_META = [
   { icon: "📍", text: "Jakarta" },
@@ -10,10 +10,7 @@ const PROFILE_META = [
 ];
 
 const SKILLS = [
-  "🛠️ TypeScript · Rust · Go",
-  "🎨 Figma · CSS · Motion",
-  "🏗️ React · Next.js · Tauri",
-  "🗃️ PostgreSQL · Supabase",
+  "🛠️ Android Dev · iOS Dev",
   "✍️ Writing weekly",
   "🤝 Open to collabs",
 ];
@@ -173,11 +170,7 @@ const skillItem: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-export default function About({
-  setActive,
-}: {
-  setActive: (s: Section) => void;
-}) {
+export default function About() {
   return (
     <div style={pageWrapper}>
       <div style={container}>
@@ -274,7 +267,7 @@ export default function About({
       </div>
 
       {/* Contact section */}
-      <Contact setActive={setActive} />
+      <Contact />
     </div>
   );
 }

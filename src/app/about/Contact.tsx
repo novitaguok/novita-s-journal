@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Rule, Annotation, CodeBlock } from "../ui/Shared";
+import { Rule, Annotation, CodeBlock } from "../../components/Shared";
 import { Section } from "../../types";
 
 const SOCIAL_LINKS = [
@@ -173,11 +173,7 @@ function handleBlur(
   (e.target as HTMLElement).style.borderColor = "var(--rule)";
 }
 
-export default function Contact({
-  setActive,
-}: {
-  setActive: (s: Section) => void;
-}) {
+export default function Contact() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");

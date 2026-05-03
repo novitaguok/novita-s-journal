@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Project } from "../../types";
 import { STATUS_META } from "../../lib/data";
-import { CodeBlock } from "../ui/Shared";
+import { CodeBlock } from "@/src/components/Shared";
 
 export default function MiniRepoCard({ project: p }: { project: Project }) {
   const [hov, setHov] = useState(false);
@@ -10,6 +10,7 @@ export default function MiniRepoCard({ project: p }: { project: Project }) {
 
   return (
     <div
+      onClick={() => window.open(`https://github.com/${p.repo}`, "_blank")}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{

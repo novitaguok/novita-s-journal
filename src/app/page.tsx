@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ARTICLES, PROJECTS, TAG_COLORS } from "../lib/data";
-import { CodeBlock, WashBlob, Annotation, Rule } from "../components/ui/Shared";
-import MiniRepoCard from "../components/projects/MiniRepoCard";
+import { TAG_COLORS } from "../lib/data";
+import { Project } from "../types";
+import { CodeBlock, WashBlob, Annotation, Rule } from "../components/Shared";
 import { Section } from "../types";
 import { GitHubCalendar } from "react-github-calendar";
+import MiniRepoCard from "./projects/MiniRepoCard";
 
 const GREETING = `// Hey there, I'm Novita 👋
 // I write code and occasionally ship things
@@ -271,19 +272,9 @@ function tagBadge(bg: string, text: string): React.CSSProperties {
   };
 }
 
-function heatmapColor(value: number): string {
-  if (value > 0.88) return "#1a7f37";
-  if (value > 0.68) return "#2ea043";
-  if (value > 0.45) return "#56d364";
-  if (value > 0.25) return "#aff5b4";
-  return "var(--rule)";
-}
+import Link from "next/link";
 
-export default function Home({
-  setActive,
-}: {
-  setActive: (s: Section) => void;
-}) {
+export default function Home() {
   const [lineIdx, setLineIdx] = useState(0);
   const [mounted, setMounted] = useState(false);
 
@@ -304,8 +295,13 @@ export default function Home({
     return () => clearInterval(timer);
   }, []);
 
-  const pinnedProjects = PROJECTS.filter((project) => project.pinned);
-  const recentArticles = ARTICLES.slice(0, 3);
+  const [pinnedProjects, setPinnedProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    fetch('/api/projects?isPinned=true')
+      .then(res => res.json())
+      .then(json => setPinnedProjects(json.data ?? []));
+  }, []);
 
   return (
     <div style={pageWrapper}>
@@ -343,24 +339,24 @@ export default function Home({
             />
 
             <div style={buttonGroup}>
-              <button
-                onClick={() => setActive("projects")}
-                style={heroButtonStyle("primary")}
+              <Link
+                href="/projects"
+                style={{ ...heroButtonStyle("primary"), textDecoration: "none" }}
               >
                 $ cd work/
-              </button>
-              <button
-                onClick={() => setActive("articles")}
-                style={heroButtonStyle("secondary")}
+              </Link>
+              <Link
+                href="/articles"
+                style={{ ...heroButtonStyle("secondary"), textDecoration: "none" }}
               >
                 $ cat writing/
-              </button>
-              <button
-                onClick={() => setActive("about")}
-                style={heroButtonStyle("ghost")}
+              </Link>
+              <Link
+                href="/about"
+                style={{ ...heroButtonStyle("ghost"), textDecoration: "none" }}
               >
                 about.md
-              </button>
+              </Link>
             </div>
 
             <Annotation text="built 4 things this year, learned way more than I shipped" />
@@ -435,9 +431,9 @@ export default function Home({
               <h2 style={sectionHeading}>📌 Pinned</h2>
               <span style={sectionAnnotation}>things I'm proud of</span>
             </div>
-            <button onClick={() => setActive("projects")} style={viewAllLink}>
+            <Link href="/projects" style={{ ...viewAllLink, textDecoration: "none" }}>
               view all repos →
-            </button>
+            </Link>
           </div>
           <Rule style={{ marginBottom: "1.5rem" }} />
           <div style={pinnedGrid}>
@@ -454,47 +450,11 @@ export default function Home({
               <h2 style={sectionHeading}>✍️ Recent Writing</h2>
               <span style={sectionAnnotation}>thinking out loud</span>
             </div>
-            <button onClick={() => setActive("articles")} style={viewAllLink}>
+            <Link href="/articles" style={{ ...viewAllLink, textDecoration: "none" }}>
               all articles →
-            </button>
+            </Link>
           </div>
           <Rule style={{ marginBottom: "1.5rem" }} />
-
-          <div style={articleList}>
-            {recentArticles.map((article) => {
-              const tagColor = TAG_COLORS[article.tag];
-              return (
-                <div
-                  key={article.id}
-                  onClick={() => setActive("articles")}
-                  style={articleCardBase}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor =
-                      "var(--rule-dark)";
-                    (e.currentTarget as HTMLElement).style.background =
-                      "var(--canvas-hover)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor =
-                      "var(--rule)";
-                    (e.currentTarget as HTMLElement).style.background =
-                      "var(--canvas-card)";
-                  }}
-                >
-                  <div style={articleCardLeft}>
-                    <span style={tagBadge(tagColor.bg, tagColor.text)}>
-                      {article.tag}
-                    </span>
-                    <span style={articleTitle}>{article.title}</span>
-                  </div>
-                  <div style={articleCardRight}>
-                    <span style={monoSmall}>{article.date}</span>
-                    <span style={monoSmall}>{article.readTime}m</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import "./globals.css";
-import { ThemeProvider } from "../components/layout/ThemeProvider";
-import App from "../components/layout/App";
+import { ThemeProvider } from "../components/ThemeProvider";
+import AppLayout from "../components/AppLayout";
 
 export const metadata = {
-  title: "Novita | Engineer & Designer",
+  title: "Novita | Engineer",
   description: "Portfolio and Journal",
 };
 
@@ -22,7 +22,7 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
-          <App />
+          <AppLayout>{children}</AppLayout>
         </ThemeProvider>
       </body>
     </html>
