@@ -1,5 +1,5 @@
 ---
-title: "From Input to Impact: Driving Results with Prompt Engineering (Part 1"
+title: "From Input to Impact: Driving Results with Prompt Engineering (Part 1)"
 
 ---
 
@@ -56,9 +56,11 @@ To learn more about how Generative AI works, you can check out this reference: [
     Establish strict boundaries, such as response length, formatting rules, or topics to avoid. Setting clear limits keeps the model focused only on delivering what you need.
     
 
-## Prompt Engineering Patterns
+* * *
 
-### Pattern: The Persona
+# Prompt Engineering Patterns
+
+## Pattern: The Persona
 
 Defining Personas Using personas helps the AI model understand context and constraints, ensuring the generated output is more relevant, specific, and tailored to a particular viewpoint. A simple framework for this is the **R-I-C formula**:
 
@@ -72,21 +74,21 @@ Defining Personas Using personas helps the AI model understand context and const
 **Example Formulas**
 
 1.  The Expert/Professional Pattern  
-    "Act as a \[Profession\] specializing in \[Specialty\]. You have \[Number\] years of experience. Please answer my questions using \[Tone/Style, e.g., clear, concise, professional English\]."
+    "Act as a <Profession> specializing in <Specialty>. You have <Number> years of experience. Please answer my questions using <Tone/Style, e.g., clear, concise, professional English>."
     
 2.  The Fictional/Creative Pattern  
-    "You are \[Character Name/Description\] from \[Context/Setting\]. Your personality is \[Traits\]. When you speak, use the vocabulary and voice of \[Character/Archetype\]."
+    "You are <Character Name/Description> from <Context/Setting>. Your personality is . When you speak, use the vocabulary and voice of <Character/Archetype>."
     
 
-### Pattern: The Audience/Reverse Persona
+## Pattern: The Audience/Reverse Persona
 
 By specifying the target audience, the AI model adjusts its tone, terminology, and detail level to match the user's specific background and depth of knowledge.
 
 **Example Formula**
 
-"Explain \[Topic\] to me as if I am \[Audience Profile, e.g., a five-year-old child / an anxious first-time buyer\]. Use simple terms and avoid complex jargon."
+"Explain to me as if I am <Audience Profile, e.g., a five-year-old child / an anxious first-time buyer>. Use simple terms and avoid complex jargon."
 
-### Pattern: Few-shots
+## Pattern: Few-shots
 
 In simple terms, this pattern provides several input-output examples (shots). It is exceptionally helpful for tasks requiring a specific output format, such as information extraction or structured content creation.
 
@@ -100,7 +102,7 @@ In simple terms, this pattern provides several input-output examples (shots). It
     
 *   **Your Turn Input:** "I cannot log into my mobile app account."
     
-*   **Your Turn Output:** \[Model fills in: Category: Technical Issue\]
+*   **Your Turn Output:**
     
 
 Or you can show the model the exact structural layout you expect back. E.g.,
@@ -115,10 +117,10 @@ Or you can show the model the exact structural layout you expect back. E.g.,
     
 *   **Your Turn Input:** "Reach out to Alex Brown ([alex.b@sample.net](mailto:alex.b@sample.net)) to schedule an interview."
     
-*   **Your Turn Output:** \[Model fills in: `{"name": "Alex Brown", "email": "`[`alex.b@sample.net`](mailto:alex.b@sample.net)`", "topic": "interview"}`\]
+*   **Your Turn Output:** <Model fills in: `{"name": "Alex Brown", "email": "`[`alex.b@sample.net`](mailto:alex.b@sample.net)`", "topic": "interview"}`\>
     
 
-### Pattern: Chain-of-Thought
+## Pattern: Chain-of-Thought
 
 Research shows that Generative AI models are significantly more accurate when guided through a step-by-step reasoning process rather than asked to jump straight to a final answer. We can implement this in two ways:
 
@@ -131,25 +133,27 @@ While both patterns guide the AI using examples, Few-Shot and Chain-of-Thought p
 
 **Example Prompt:**
 
-*   `Q: There are 15 trees in the grove. Workers plant more trees today. Afterward, there are 21 trees. How many did they plant?`
+*   `Q: A local bakery had 40 croissants at 8:00 AM. They sold 25 during the morning rush and baked a fresh batch of 30 at noon. How many croissants are available now?`
     
-*   `A: There were 15 trees originally. Then there were 21 trees. 21 - 15 = 6. The answer is 6.`
+*   `A: The bakery started with 40 croissants. They sold 25, leaving 40 - 25 = 15. Then they baked 30 more, making 15 + 30 = 45. The answer is 45.`
     
 
-**Target Question:** `Q: If a train travels 120 km in 2 hours, what is its average speed in km/h?`
+**Target Question:** `A store receives a shipment of 150 phones. They sell 45 on Monday and 30 on Tuesday. On Wednesday, 10 damaged units are returned to stock. How many sellable phones remain?`
 
 **AI Output:**
 
-*   The train travels a total distance of 120 km.
+*   The store started with an initial inventory of 150 phones.
     
-*   The total time taken is 2 hours.
+*   On Monday, 45 phones were sold: 150 - 45 = 105.
     
-*   Average speed is calculated as distance divided by time: 120 / 2 = 60.
+*   On Tuesday, 30 phones were sold: 105 - 30 = 75.
     
-*   **The answer is 60 km/h.**
+*   On Wednesday, 10 returned units were added back to stock: 75 + 10 = 85.
+    
+*   **The answer is 85 sellable phones.**
     
 
-### Pattern: ReAct
+## Pattern: ReAct
 
 As Generative AI users, we can empower models to utilize external tools when generating responses. **ReAct**—short for **Reasoning and Acting**—is an advanced evolution of the Chain-of-Thought pattern. Beyond guiding the model to process tasks step-by-step, ReAct enables the model to take actions—such as querying external APIs or databases—to retrieve real-time information it doesn't natively possess.
 
@@ -167,22 +171,22 @@ The ReAct framework operates through three core components:
 **Example**
 
 ```plaintext
-Question: What is the elevation difference between the highest point in Japan and the highest point in Mount Everest's range?
+Question: What is the current market capitalization difference between Apple and Microsoft in USD?
 
-Thought 1: I need to find the highest point in Japan.
-Action 1: Search[highest point in Japan]
-Observation 1: Mount Fuji is the highest point in Japan, at 3,776 meters.
+Thought 1: I need to fetch the real-time market cap of Apple (AAPL).
+Action 1: Search[Apple AAPL current market capitalization USD]
+Observation 1: Apple's market capitalization is approximately $3.45 trillion USD.
 
-Thought 2: I need to find the highest point of Mount Everest (the Himalayas).
-Action 2: Search[highest point of Mount Everest]
-Observation 2: Mount Everest is 8,848 meters high.
+Thought 2: I need to fetch the real-time market cap of Microsoft (MSFT).
+Action 2: Search[Microsoft MSFT current market capitalization USD]
+Observation 2: Microsoft's market capitalization is approximately $3.12 trillion USD.
 
-Thought 3: I need to subtract Mount Fuji's elevation from Mount Everest's elevation to find the difference.
-Action 3: Calculator[8848 - 3776]
-Observation 3: 5072
+Thought 3: I need to subtract Microsoft's market cap from Apple's market cap to find the difference.
+Action 3: Calculator[3.45 - 3.12]
+Observation 3: 0.33
 
-Thought 4: I now have the final difference.
-Final Answer: The elevation difference is 5,072 meters.
+Thought 4: I now have the final calculation in trillions.
+Final Answer: The current market capitalization difference between Apple and Microsoft is approximately $330 billion USD ($333 billion USD).
 ```
 
 * * *
