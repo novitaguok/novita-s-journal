@@ -41,7 +41,7 @@ To learn more about how Generative AI works, you can check out this reference: [
     It is crucial for Generative AI users to understand that models generate responses by predicting the most probable next word, not by retrieving verified facts. This probabilistic nature can lead to "hallucinations"—instances where the model confidently generates incorrect or completely fabricated information.
     
 
-### Best Practise
+### Best Practises
 
 1.  Role  
     Define a specific persona or expert role for the AI to adopt. This helps the model tailor its tone, style, and complexity to match the target audience's level of understanding.
@@ -74,10 +74,10 @@ Defining Personas Using personas helps the AI model understand context and const
 **Example Formulas**
 
 1.  The Expert/Professional Pattern  
-    "Act as a <Profession> specializing in <Specialty>. You have <Number> years of experience. Please answer my questions using <Tone/Style, e.g., clear, concise, professional English>."
+    "Act as a \[Profession\] specializing in \[Specialty\]. You have \[Number\] years of experience. Please answer my questions using \[Tone/Style, e.g., clear, concise, professional English\]."
     
 2.  The Fictional/Creative Pattern  
-    "You are <Character Name/Description> from <Context/Setting>. Your personality is . When you speak, use the vocabulary and voice of <Character/Archetype>."
+    "You are \[Character Name/Description\] from \[Context/Setting\]. Your personality is \[Traits\]. When you speak, use the vocabulary and voice of \[Character/Archetype\]."
     
 
 ## Pattern: The Audience/Reverse Persona
@@ -86,9 +86,9 @@ By specifying the target audience, the AI model adjusts its tone, terminology, a
 
 **Example Formula**
 
-"Explain to me as if I am <Audience Profile, e.g., a five-year-old child / an anxious first-time buyer>. Use simple terms and avoid complex jargon."
+"Explain \[Topic\] to me as if I am \[Audience Profile, e.g., a five-year-old child / an anxious first-time buyer\]. Use simple terms and avoid complex jargon."
 
-## Pattern: Few-shots
+## Pattern: Few-Shot
 
 In simple terms, this pattern provides several input-output examples (shots). It is exceptionally helpful for tasks requiring a specific output format, such as information extraction or structured content creation.
 
@@ -102,7 +102,7 @@ In simple terms, this pattern provides several input-output examples (shots). It
     
 *   **Your Turn Input:** "I cannot log into my mobile app account."
     
-*   **Your Turn Output:**
+*   **Your Turn Output:** `[Model fills in: Category: Technical Issue]`
     
 
 Or you can show the model the exact structural layout you expect back. E.g.,
@@ -117,7 +117,7 @@ Or you can show the model the exact structural layout you expect back. E.g.,
     
 *   **Your Turn Input:** "Reach out to Alex Brown ([alex.b@sample.net](mailto:alex.b@sample.net)) to schedule an interview."
     
-*   **Your Turn Output:** <Model fills in: `{"name": "Alex Brown", "email": "`[`alex.b@sample.net`](mailto:alex.b@sample.net)`", "topic": "interview"}`\>
+*   **Your Turn Output:** \[Model fills in: `{"name": "Alex Brown", "email": "`[`alex.b@sample.net`](mailto:alex.b@sample.net)`", "topic": "interview"}`\]
     
 
 ## Pattern: Chain-of-Thought
@@ -186,7 +186,7 @@ Action 3: Calculator[3.45 - 3.12]
 Observation 3: 0.33
 
 Thought 4: I now have the final calculation in trillions.
-Final Answer: The current market capitalization difference between Apple and Microsoft is approximately $330 billion USD ($333 billion USD).
+Final Answer: The current market capitalization difference between Apple and Microsoft is approximately $330 billion USD ($330 billion USD).
 ```
 
 * * *
