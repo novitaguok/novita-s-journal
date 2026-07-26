@@ -7,7 +7,12 @@ Also known as Dynamic Prompting is a technique where an AI system adapts its ins
 
 Instead of relying on a single, fixed text template (a "static prompt"), an adaptive prompting framework acts as a flexible pipeline that builds or alters the prompt on the fly before sending it to the Large Language Model (LLM).
 
-<table style="min-width: 75px;"><colgroup><col style="min-width: 25px;"><col style="min-width: 25px;"><col style="min-width: 25px;"></colgroup><tbody><tr><td colspan="1" rowspan="1"><p><strong>Feature</strong></p></td><td colspan="1" rowspan="1"><p><strong>Static Prompting</strong></p></td><td colspan="1" rowspan="1"><p><strong>Adaptive Prompting</strong></p></td></tr><tr><td colspan="1" rowspan="1"><p><strong>Instruction Structure</strong></p></td><td colspan="1" rowspan="1"><p>Fixed template regardless of input.</p></td><td colspan="1" rowspan="1"><p>Dynamically composed at runtime.</p></td></tr><tr><td colspan="1" rowspan="1"><p><strong>Complexity Handling</strong></p></td><td colspan="1" rowspan="1"><p>Same prompt used for simple and hard tasks.</p></td><td colspan="1" rowspan="1"><p>Escalates detail or reasoning steps for hard tasks.</p></td></tr><tr><td colspan="1" rowspan="1"><p><strong>Context Awareness</strong></p></td><td colspan="1" rowspan="1"><p>Limited to hardcoded rules or fixed examples.</p></td><td colspan="1" rowspan="1"><p>Adjusts persona, tone, or constraints based on user data.</p></td></tr><tr><td colspan="1" rowspan="1"><p><strong>Tool Usage</strong></p></td><td colspan="1" rowspan="1"><p>Fixed tool calls or manual intervention.</p></td><td colspan="1" rowspan="1"><p>Dynamically injects tool definitions only when needed.</p></td></tr></tbody></table>
+| Feature | Static Prompting | Adaptive Prompting |
+| --- | --- | --- |
+| **Instruction Structure** | Fixed template regardless of input. | Dynamically composed at runtime. |
+| **Complexity Handling** | Same prompt used for simple and hard tasks. | Escalates detail or reasoning steps for hard tasks. |
+| **Context Awareness** | Limited to hardcoded rules or fixed examples. | Adjusts persona, tone, or constraints based on user data. |
+| **Tool Usage** | Fixed tool calls or manual intervention. | Dynamically injects tool definitions only when needed. |
 
 ### How Adaptive Prompting Works
 
@@ -36,7 +41,7 @@ When posing a question, we often have an incomplete or vague idea of what we act
 
 The **Question Refinement Pattern** solves this by turning the AI into a collaborative editor before it attempts to generate a final answer.
 
-How to Implement This Pattern?
+How to implement this pattern?
 
 1.  **Ask the AI to generate improved variations:** Instruct the model to analyze your original prompt and propose several clearer, more specific, or better-structured alternative questions.
     
