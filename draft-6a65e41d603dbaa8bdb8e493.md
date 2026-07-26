@@ -45,10 +45,55 @@ How to Implement This Pattern?
 
 **Example Prompt Formula**
 
-`Whenever I ask a question about [Topic], suggest 3 better, more specific versions of my question that would yield a more thorough and accurate answer. Then, ask me which version I would like you to answer.`
+*"Whenever I ask a question about* ***\[Topic\]****, suggest* ***3 better, more specific versions*** *of my question that would yield a more thorough and accurate answer. Then, ask me which version I would like you to answer."*
 
 ## Pattern: Alternative Approaches
 
+The core idea of this pattern is to prompt the AI model to generate multiple pathways or methods to solve a single problem. Rather than settling on the first solution, this approach encourages reflection on your true objectives and allows you to evaluate which method is best suited for your constraints.
+
+1.  **Generate multiple solutions:** Instruct the AI to list alternative approaches or methods that achieve the same core objective as your initial request.
+    
+
+1.  **Compare trade-offs:** Ask the AI to compare the pros and cons (or advantages and disadvantages) of your original approach against the alternatives it proposes.
+    
+
+**Example Prompt Formula**
+
+*"I want to achieve* ***\[Goal/Task\]****. Here is my initial idea:* ***'\[Insert your approach\]'****. Before implementing it, please list* ***3 alternative ways*** *to accomplish the same goal, and compare the pros and cons of each method against my original idea."*
+
 ## Pattern: Cognitive Verifier
 
+Works by having the AI model break down a primary question into smaller, sub-questions ("atomic queries") to collect necessary context and verify details before delivering a final answer. How to implement this pattern:
+
+1.  **Instruct the model to ask sub-questions:** Require the AI to generate and answer additional sub-questions to gather comprehensive background data before addressing your main query.
+    
+2.  **Require complete data synthesis:** Direct the model to explicitly incorporate the answers from all sub-questions when synthesizing its final response.
+    
+
+**Example Prompt Formula**
+
+*"When I ask you* ***'\[Insert your main question\]'****, follow these steps before answering:*
+
+1.  *Break my query down into 3–4 foundational sub-questions required to answer it accurately.*
+    
+2.  *Answer each sub-question individually.*
+    
+3.  *Combine the insights from all sub-questions to provide a well-verified final response."*
+    
+
 ## Pattern: Flipped Interaction
+
+Imagine you are developing an Android e-Library application and need to write unit tests for the **"Add Book"** feature. You are unsure how to structure the test code and haven't identified all the necessary edge cases. Because your own requirements are unclear, crafting a precise initial prompt is difficult—and asking a vague question will likely yield an incomplete answer.
+
+The **Flipped Interaction Pattern** solves this problem by turning the traditional AI dynamic upside down: **instead of you asking the AI questions, the AI asks you questions** to draw out the necessary details and constraints. Step:
+
+1.  **Define the ultimate goal:** State your target objective clearly (e.g., *"Help me write a complete test suite for the 'Add Book' screen in my Android app"*).
+    
+2.  **Flip the roles:** Instruct the AI to ask you targeted questions rather than immediately generating a solution (e.g., *"Ask me questions one by one to collect the information you need"*).
+    
+3.  **Set the stopping constraint:** Tell the AI when to stop asking questions and deliver the final output (e.g., *"Continue asking questions until you have enough details to generate the complete test code"*).
+    
+
+**Example Prompt Formula**
+
+*"I want you to* ***\[Define Goal/Task, e.g., create unit tests for the 'Add Book' feature in Kotlin\]****. To do this accurately,* ***ask me questions*** *about my project requirements, data structures, and edge cases.* ***Ask only one question at a time.*** *Keep asking questions until you have all the information required to write the complete code, then provide the solution."*
