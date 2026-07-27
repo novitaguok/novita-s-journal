@@ -12,6 +12,4 @@ export interface ArticlesRepository {
   getArticleSlugs(): Promise<string[]>;
 
   incrementViews(slug: string): Promise<void>;
-
-  upsertArticle(article: Article): Promise<void>;
 }

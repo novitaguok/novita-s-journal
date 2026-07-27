@@ -74,23 +74,4 @@ export class SupabaseArticlesRepository implements ArticlesRepository {
   async incrementViews(slug: string): Promise<void> {
     await supabaseAdmin.rpc("increment_views");
   }
-
-  async upsertArticle(article: Article): Promise<void> {
-    const { error } = await supabaseAdmin
-      .from("articles")
-      .upsert({
-        id: article.id,
-        slug: article.slug,
-        title: article.title,
-        tag: article.tag,
-        excerpt: article.excerpt,
-        body: article.body,
-        read_time: article.readTime,
-        is_published: article.isPublished,
-        published_at: article.publishedAt,
-        created_at: article.createdAt,
-        updated_at: article.updatedAt,
-      });
-    if (error) throw new Error(error.message);
-  }
 }

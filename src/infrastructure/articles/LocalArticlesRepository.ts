@@ -113,9 +113,4 @@ export class LocalArticlesRepository implements ArticlesRepository {
   async incrementViews(slug: string): Promise<void> {
     // Local storage doesn't track views. No-op.
   }
-
-  async upsertArticle(article: Article): Promise<void> {
-    // No-op for local repository. Alternatively could save as a markdown file,
-    // but default behavior is webhook update goes to database.
-  }
 }
