@@ -9,7 +9,7 @@ import {
   Skeleton,
   TagBadge,
 } from "../../components/Shared";
-import { ArticleListItem } from "@/src/types";
+import { ArticleListItem } from "@/src/domain/articles/types";
 import Link from "next/link";
 
 const pageWrapper: React.CSSProperties = {
@@ -202,7 +202,7 @@ const articleTitle: React.CSSProperties = {
 export default function ArticleListPage() {
   const [searchQ, setSearchQ] = useState("");
   const [activeTag, setActiveTag] = useState<string>("all");
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | number | null>(null);
   const [articleList, setArticleList] = useState<ArticleListItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
