@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getGithubContributions } from "../../../services/github";
+import { GetGithubContributionsUseCase } from "@/src/use-cases/github/GetGithubContributionsUseCase";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,7 +13,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const data = await getGithubContributions(username);
+    const useCase = new GetGithubContributionsUseCase();
+    const data = await useCase.execute(username);
     return NextResponse.json(data);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

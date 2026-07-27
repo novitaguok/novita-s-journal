@@ -1,5 +1,4 @@
-import { incrementViews } from "@/src/lib/supabase";
-import { getArticle, getArticleSlugs } from "@/src/lib/articles-local";
+import { GetArticlesUseCase } from "@/src/use-cases/articles/GetArticlesUseCase";
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,7 +9,8 @@ import GiscusClient from "../../../components/GiscusClient";
 import ArticleLayoutWrapper from "../../../components/ArticleLayoutWrapper";
 
 export async function generateStaticParams() {
-  const slugs = await getArticleSlugs();
+  const useCase = new GetArticlesUseCase();
+  const slugs = await useCase.executeGetSlugs();
   return slugs.map((slug) => ({ slug }));
 }
 
@@ -20,7 +20,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  const useCase = new GetArticlesUseCase();
+  const article = await useCase.executeGet(slug);
   if (!article) return {};
   return {
     title: article.title,
@@ -259,10 +260,11 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  const useCase = new GetArticlesUseCase();
+  const article = await useCase.executeGet(slug);
   if (!article) notFound();
 
-  incrementViews(slug).catch(() => {});
+  useCase.executeIncrementViews(slug).catch(() => {});
 
   return (
     <article style={{ paddingTop: "52px", minHeight: "100vh" }}>

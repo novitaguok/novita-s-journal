@@ -4,14 +4,12 @@ import { useEffect, useState, useMemo } from "react";
 import { STATUS_META } from "../../lib/data";
 import { Rule } from "../../components/Shared";
 
-import { Project } from "@/src/types";
-import FeaturedRepoCard from "./FeaturedRepoCard";
-import MiniRepoCard from "./MiniRepoCard";
+import { Project } from "@/src/domain/projects/types";
+import FeaturedRepoCard from "@/src/features/projects/components/FeaturedRepoCard";
+import MiniRepoCard from "@/src/features/projects/components/MiniRepoCard";
 
 const FILTERS = ["all", "active", "stable", "archived"] as const;
 type Filter = (typeof FILTERS)[number];
-
-// dynamically generated instead of hardcoded
 
 const pageWrapper: React.CSSProperties = {
   paddingTop: "52px",
@@ -146,7 +144,6 @@ export default function ProjectListPage() {
 
   const [searchQ, setSearchQ] = useState("");
   const [activeTag, setActiveTag] = useState<string>("all");
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
