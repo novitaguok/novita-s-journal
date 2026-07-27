@@ -167,6 +167,7 @@ const mdComponents: Components = {
         color: "var(--ink-soft)",
         paddingLeft: "1.5rem",
         marginBottom: "1.25rem",
+        listStyleType: "disc",
       }}
     >
       {children}
@@ -181,6 +182,7 @@ const mdComponents: Components = {
         color: "var(--ink-soft)",
         paddingLeft: "1.5rem",
         marginBottom: "1.25rem",
+        listStyleType: "decimal",
       }}
     >
       {children}
@@ -352,7 +354,7 @@ export default async function ArticlePage({
 
         {/* Body — rendered by react-markdown */}
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-          {article.body}
+          {article.body.replace(/!\[(.*?)\]\((.*?)\s+align=".*?"\)/g, '![$1]($2)')}
         </ReactMarkdown>
 
         <Rule style={{ margin: "3rem 0 2rem" }} />
