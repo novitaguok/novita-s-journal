@@ -29,9 +29,9 @@ export async function getArticle(slug: string): Promise<Article | null> {
       readTime: data.readTime || calculateReadTime(content),
       views: 0, // You can fetch this from Supabase or an analytics API
       isPublished: data.isPublished !== false,
-      publishedAt: data.date || new Date().toISOString(),
-      createdAt: data.date || new Date().toISOString(),
-      updatedAt: data.date || new Date().toISOString(),
+      publishedAt: data.date || data.datePublished || new Date().toISOString(),
+      createdAt: data.date || data.datePublished || new Date().toISOString(),
+      updatedAt: data.date || data.datePublished || new Date().toISOString(),
     };
   } catch (err) {
     return null;
@@ -67,9 +67,9 @@ export async function getArticleList(opts?: {
         readTime: data.readTime || calculateReadTime(content),
         views: 0,
         isPublished: true,
-        publishedAt: data.date || new Date().toISOString(),
-        createdAt: data.date || new Date().toISOString(),
-        updatedAt: data.date || new Date().toISOString(),
+        publishedAt: data.date || data.datePublished || new Date().toISOString(),
+        createdAt: data.date || data.datePublished || new Date().toISOString(),
+        updatedAt: data.date || data.datePublished || new Date().toISOString(),
       });
     }
 
