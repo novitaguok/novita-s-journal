@@ -1,8 +1,5 @@
-import { getArticleList } from "@/src/lib/articles-local";
 import { NextRequest, NextResponse } from "next/server";
-
-// Node.js runtime is required for fs module
-// export const runtime = "edge";
+import { GetArticlesUseCase } from "@/src/use-cases/articles/GetArticlesUseCase";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -13,7 +10,8 @@ export async function GET(req: NextRequest) {
     : undefined;
 
   try {
-    const articleList = await getArticleList({ tag, search, limit });
+    const useCase = new GetArticlesUseCase();
+    const articleList = await useCase.executeList({ tag, search, limit });
     return NextResponse.json({ data: articleList, error: null });
   } catch (err: any) {
     return NextResponse.json(

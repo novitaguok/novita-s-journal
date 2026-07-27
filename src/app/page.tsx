@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { TAG_COLORS } from "../lib/data";
-import { Project } from "../types";
+import { Project } from "@/src/domain/projects/types";
 import { CodeBlock, WashBlob, Annotation, Rule } from "../components/Shared";
 import { Section } from "../types";
 import { GitHubCalendar } from "react-github-calendar";
-import MiniRepoCard from "./projects/MiniRepoCard";
+import MiniRepoCard from "@/src/features/projects/components/MiniRepoCard";
 
 const GREETING = `// Hey there, I'm Novita 👋
 // I write code and occasionally ship things

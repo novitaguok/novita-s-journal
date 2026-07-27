@@ -1,5 +1,5 @@
 "use client";
-import { Project } from "@/src/types";
+import { Project } from "@/src/domain/projects/types";
 import { useState } from "react";
 import FeaturedRepoCard from "./FeaturedRepoCard";
 import MiniRepoCard from "./MiniRepoCard";

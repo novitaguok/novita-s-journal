@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Project } from "../../types";
-import { STATUS_META } from "../../lib/data";
+import { Project } from "@/src/domain/projects/types";
+import { STATUS_META } from "@/src/lib/data";
 import { CodeBlock } from "@/src/components/Shared";
 
 export default function FeaturedRepoCard({
@@ -34,7 +34,7 @@ export default function FeaturedRepoCard({
       }}
     >
       <CodeBlock
-        code={p.snippet}
+        code={p.snippet || ""}
         lang={p.lang.toLowerCase()}
         style={{
           borderRadius: 0,
