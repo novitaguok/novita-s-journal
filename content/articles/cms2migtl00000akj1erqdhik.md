@@ -63,7 +63,7 @@ To learn more about how Generative AI works, you can check out this reference: [
 
 # Prompt Engineering Patterns
 
-## Pattern: The Persona
+Pattern: The Persona
 
 Defining Personas Using personas helps the AI model understand context and constraints, ensuring the generated output is more relevant, specific, and tailored to a particular viewpoint. A simple framework for this is the **R-I-C formula**:
 
