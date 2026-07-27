@@ -1,4 +1,4 @@
-import { Project } from "../types";
+import { Project } from "../domain/projects/types";
 
 export const CUSTOM_SNIPPETS: Record<string, string> = {
   "novitaguok/BudgetIN": `Widget build(BuildContext context) {\n  return Scaffold(\n    appBar: AppBar(title: Text('BudgetIN')),\n    body: Center(child: Text('Invest your money')),\n  );\n}`,

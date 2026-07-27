@@ -1,21 +1,27 @@
-import { getArticle } from "@/src/lib/articles-local";
 import { NextRequest, NextResponse } from "next/server";
-
-// export const runtime = "edge";
+import { GetArticlesUseCase } from "@/src/use-cases/articles/GetArticlesUseCase";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  try {
+    const useCase = new GetArticlesUseCase();
+    const article = await useCase.executeGet(slug);
 
-  if (!article) {
+    if (!article) {
+      return NextResponse.json(
+        { data: null, error: "Article not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: article, error: null });
+  } catch (err: any) {
     return NextResponse.json(
-      { data: null, error: "Article not found" },
-      { status: 404 },
+      { data: null, error: err.message },
+      { status: 500 },
     );
   }
-
-  return NextResponse.json({ data: article, error: null });
 }
