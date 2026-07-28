@@ -332,7 +332,7 @@ export default function ArticleListPage() {
                   onMouseLeave={() => setHoveredId(null)}
                   style={articleCardStyle(
                     hoveredId === article.id,
-                    TAG_COLORS[article.tag].text,
+                    (TAG_COLORS[article.tag] ?? TAG_COLORS["engineering"]).text,
                   )}
                   // style={{
                   //   borderLeft: `3px solid ${hoveredId === article.id ? "var(--accent)" : "var(--rule)"}`,
