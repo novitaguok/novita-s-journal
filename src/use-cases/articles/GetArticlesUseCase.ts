@@ -15,25 +15,25 @@ export class GetArticlesUseCase {
     limit?: number;
     source?: "local" | "devto";
   }): Promise<ArticleListItem[]> {
-    if (opts?.source === "devto") {
-      return this.devToRepo.getArticleList(opts);
+    if (opts?.source === "local") {
+      return this.localRepo.getArticleList(opts);
     }
-    // Default to local/markdown articles
-    return this.localRepo.getArticleList(opts);
+    // Default to Dev.to
+    return this.devToRepo.getArticleList(opts);
   }
 
-  async executeGet(slug: string, source: "local" | "devto" = "local"): Promise<Article | null> {
-    if (source === "devto") {
-      return this.devToRepo.getArticle(slug);
+  async executeGet(slug: string, source: "local" | "devto" = "devto"): Promise<Article | null> {
+    if (source === "local") {
+      return this.localRepo.getArticle(slug);
     }
-    return this.localRepo.getArticle(slug);
+    return this.devToRepo.getArticle(slug);
   }
 
-  async executeGetSlugs(source: "local" | "devto" = "local"): Promise<string[]> {
-    if (source === "devto") {
-      return this.devToRepo.getArticleSlugs();
+  async executeGetSlugs(source: "local" | "devto" = "devto"): Promise<string[]> {
+    if (source === "local") {
+      return this.localRepo.getArticleSlugs();
     }
-    return this.localRepo.getArticleSlugs();
+    return this.devToRepo.getArticleSlugs();
   }
 
   async executeIncrementViews(slug: string): Promise<void> {

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const useCase = new GetArticlesUseCase();
-    const articleList = await useCase.executeList({ tag, search, limit, source: "devto" });
+    const articleList = await useCase.executeList({ tag, search, limit });
     return NextResponse.json({ data: articleList, error: null });
   } catch (err: any) {
     return NextResponse.json(
