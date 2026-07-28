@@ -10,7 +10,7 @@ import ArticleLayoutWrapper from "../../../components/ArticleLayoutWrapper";
 
 export async function generateStaticParams() {
   const useCase = new GetArticlesUseCase();
-  const slugs = await useCase.executeGetSlugs();
+  const slugs = await useCase.executeGetSlugs("devto");
   return slugs.map((slug) => ({ slug }));
 }
 
@@ -21,7 +21,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const useCase = new GetArticlesUseCase();
-  const article = await useCase.executeGet(slug);
+  const article = await useCase.executeGet(slug, "devto");
   if (!article) return {};
   return {
     title: article.title,
@@ -263,7 +263,7 @@ export default async function ArticlePage({
 }) {
   const { slug } = await params;
   const useCase = new GetArticlesUseCase();
-  const article = await useCase.executeGet(slug);
+  const article = await useCase.executeGet(slug, "devto");
   if (!article) notFound();
 
   useCase.executeIncrementViews(slug).catch(() => {});
