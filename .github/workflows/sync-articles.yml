@@ -1,0 +1,165 @@
+name: Sync Articles
+
+on:
+  push:
+    branches:
+      - main
+
+# Prevent multiple runs from stacking if pushes come in quickly
+concurrency:
+  group: sync-articles-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: Move new .md files from repo root → content/articles/
+  #        Renames each file to its frontmatter `slug` value so that the
+  #        filename matches the article URL slug.
+  # ---------------------------------------------------------------------------
+  move-articles:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Skip this job if it was triggered by the bot's own commit to avoid loops
+    if: github.actor != 'github-actions[bot]'
+    outputs:
+      moved_slugs: ${{ steps.move.outputs.slugs }}
+      has_moved: ${{ steps.move.outputs.has_moved }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Move and rename new articles to content/articles/
+        id: move
+        run: |
+          shopt -s nullglob
+
+          files=()
+          for f in *.md; do
+            if [[ "$f" != "README.md" && "$f" != draft-* ]]; then
+              files+=("$f")
+            fi
+          done
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No new articles found in repo root."
+            echo "has_moved=false" >> "$GITHUB_OUTPUT"
+            echo "slugs=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Found articles to process: ${files[*]}"
+          mkdir -p content/articles
+
+          slugs=()
+          for f in "${files[@]}"; do
+            # Extract frontmatter slug field (strip quotes and whitespace)
+            SLUG=$(grep -m1 '^slug:' "$f" | sed 's/^slug:[[:space:]]*//' | tr -d '"'"'" | xargs)
+
+            if [ -z "$SLUG" ]; then
+              # Fall back to filename (without .md) if no slug frontmatter
+              SLUG="${f%.md}"
+              echo "⚠️  No slug found in $f — using filename: $SLUG"
+            fi
+
+            DEST="content/articles/${SLUG}.md"
+            echo "Moving $f → $DEST"
+            mv "$f" "$DEST"
+            slugs+=("$SLUG")
+          done
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: sync articles from root to content/articles"
+          git push
+
+          # Encode slugs as JSON array for the next job
+          SLUGS_JSON=$(printf '%s\n' "${slugs[@]}" | jq -R . | jq -sc .)
+          echo "slugs=$SLUGS_JSON" >> "$GITHUB_OUTPUT"
+          echo "has_moved=true" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Detect which articles changed in this push (direct edits to
+  #        content/articles/ or files moved by Job 1) and call the
+  #        on-demand revalidation endpoint for each one.
+  # ---------------------------------------------------------------------------
+  revalidate:
+    runs-on: ubuntu-latest
+    needs: move-articles
+    # Always run revalidation — even when no files were moved —
+    # so that direct edits to content/articles/ are picked up.
+    if: always() && github.actor != 'github-actions[bot]'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Need parent commit to diff
+
+      - name: Collect slugs to revalidate
+        id: collect
+        run: |
+          ALL_SLUGS=()
+
+          # --- Slugs from articles moved by Job 1 (if any) ---
+          MOVED_JSON='${{ needs.move-articles.outputs.moved_slugs }}'
+          if [ "$MOVED_JSON" != "" ] && [ "$MOVED_JSON" != "[]" ] && [ "$MOVED_JSON" != "null" ]; then
+            while IFS= read -r slug; do
+              ALL_SLUGS+=("$slug")
+            done < <(echo "$MOVED_JSON" | jq -r '.[]')
+          fi
+
+          # --- Slugs from direct edits to content/articles/ in this push ---
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'content/articles/' 2>/dev/null || echo "")
+          for file in $CHANGED; do
+            if [[ "$file" == *.md ]]; then
+              # Prefer frontmatter slug; fall back to filename
+              SLUG=$(grep -m1 '^slug:' "$file" 2>/dev/null | sed 's/^slug:[[:space:]]*//' | tr -d '"'"'" | xargs)
+              if [ -z "$SLUG" ]; then
+                SLUG=$(basename "$file" .md)
+              fi
+              ALL_SLUGS+=("$SLUG")
+            fi
+          done
+
+          # Deduplicate
+          UNIQUE_SLUGS=($(printf '%s\n' "${ALL_SLUGS[@]}" | sort -u))
+
+          if [ ${#UNIQUE_SLUGS[@]} -eq 0 ]; then
+            echo "No article changes detected — skipping revalidation."
+            echo "slugs=[]" >> "$GITHUB_OUTPUT"
+          else
+            SLUGS_JSON=$(printf '%s\n' "${UNIQUE_SLUGS[@]}" | jq -R . | jq -sc .)
+            echo "Slugs to revalidate: $SLUGS_JSON"
+            echo "slugs=$SLUGS_JSON" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Revalidate changed article pages
+        if: steps.collect.outputs.slugs != '[]' && steps.collect.outputs.slugs != ''
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          SLUGS='${{ steps.collect.outputs.slugs }}'
+
+          while IFS= read -r slug; do
+            echo "→ Revalidating: $slug"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X POST "${SITE_URL}/api/revalidate" \
+              -H "Authorization: Bearer ${REVALIDATE_SECRET}" \
+              -H "Content-Type: application/json" \
+              -d "{\"slug\": \"$slug\"}")
+
+            if [ "$STATUS" = "200" ]; then
+              echo "  ✅ Revalidated successfully (HTTP $STATUS)"
+            else
+              echo "  ❌ Revalidation failed (HTTP $STATUS)"
+              exit 1
+            fi
+          done < <(echo "$SLUGS" | jq -r '.[]')
+
+          echo "✅ All articles revalidated."
