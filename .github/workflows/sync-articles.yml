@@ -144,22 +144,38 @@ jobs:
           SITE_URL: ${{ secrets.SITE_URL }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
         run: |
+          # --- Guard: validate required secrets are present ---
+          if [ -z "$SITE_URL" ]; then
+            echo "❌ SITE_URL secret is not set in GitHub Actions secrets."
+            echo "   Go to: repo → Settings → Secrets and variables → Actions"
+            echo "   Add: SITE_URL = https://www.novitaguok.com"
+            exit 1
+          fi
+          if [ -z "$REVALIDATE_SECRET" ]; then
+            echo "❌ REVALIDATE_SECRET secret is not set in GitHub Actions secrets."
+            exit 1
+          fi
+
           SLUGS='${{ steps.collect.outputs.slugs }}'
 
           while IFS= read -r slug; do
             echo "→ Revalidating: $slug"
+            # Use '|| echo "000"' to prevent set -e from exiting on curl errors
+            # (e.g. curl exit code 3 for malformed URL, 6 for DNS failure, etc.)
+            # We check the HTTP status code ourselves instead.
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
               -X POST "${SITE_URL}/api/revalidate" \
               -H "Authorization: Bearer ${REVALIDATE_SECRET}" \
               -H "Content-Type: application/json" \
-              -d "{\"slug\": \"$slug\"}")
+              -d "{\"slug\": \"$slug\"}" || echo "000")
 
             if [ "$STATUS" = "200" ]; then
-              echo "  ✅ Revalidated successfully (HTTP $STATUS)"
+              echo "  ✅ Revalidated (HTTP $STATUS)"
             else
-              echo "  ❌ Revalidation failed (HTTP $STATUS)"
+              echo "  ❌ Revalidation failed (HTTP $STATUS) for slug: $slug"
               exit 1
             fi
           done < <(echo "$SLUGS" | jq -r '.[]')
 
           echo "✅ All articles revalidated."
+
