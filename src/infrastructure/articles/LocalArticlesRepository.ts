@@ -20,19 +20,23 @@ export class LocalArticlesRepository implements ArticlesRepository {
       const fileContents = fs.readFileSync(filePath, 'utf8');
       const { data, content } = matter(fileContents);
 
+      // Prefer the frontmatter slug over the filename so local dev stays
+      // consistent with the GitHub-as-CMS naming convention.
+      const resolvedSlug = data.slug || slug;
+
       return {
-        id: data.id || slug,
-        slug,
+        id: data.id || data.cuid || resolvedSlug,
+        slug: resolvedSlug,
         title: data.title || 'Untitled',
         tag: data.tag || 'engineering',
-        excerpt: data.excerpt || '',
+        excerpt: data.excerpt || data.description || '',
         body: content,
         readTime: data.readTime || this.calculateReadTime(content),
         views: 0,
         isPublished: data.isPublished !== false,
         publishedAt: data.date || data.datePublished || new Date().toISOString(),
         createdAt: data.date || data.datePublished || new Date().toISOString(),
-        updatedAt: data.date || data.datePublished || new Date().toISOString(),
+        updatedAt: data.updatedAt || data.date || data.datePublished || new Date().toISOString(),
       };
     } catch (err) {
       return null;
@@ -59,18 +63,19 @@ export class LocalArticlesRepository implements ArticlesRepository {
 
         if (data.isPublished === false) continue;
 
+        const resolvedSlug = data.slug || slug;
         articles.push({
-          id: data.id || slug,
-          slug,
+          id: data.id || data.cuid || resolvedSlug,
+          slug: resolvedSlug,
           title: data.title || 'Untitled',
           tag: data.tag || 'engineering',
-          excerpt: data.excerpt || '',
+          excerpt: data.excerpt || data.description || '',
           readTime: data.readTime || this.calculateReadTime(content),
           views: 0,
           isPublished: true,
           publishedAt: data.date || data.datePublished || new Date().toISOString(),
           createdAt: data.date || data.datePublished || new Date().toISOString(),
-          updatedAt: data.date || data.datePublished || new Date().toISOString(),
+          updatedAt: data.updatedAt || data.date || data.datePublished || new Date().toISOString(),
         });
       }
 
@@ -104,7 +109,13 @@ export class LocalArticlesRepository implements ArticlesRepository {
       const fileNames = fs.readdirSync(this.contentDir);
       return fileNames
         .filter(f => f.endsWith('.md'))
-        .map(f => f.replace(/\.md$/, ''));
+        .map(f => {
+          const filePath = path.join(this.contentDir, f);
+          const fileContents = fs.readFileSync(filePath, 'utf8');
+          const { data } = matter(fileContents);
+          // Prefer frontmatter slug so static params match article page URLs.
+          return data.slug || f.replace(/\.md$/, '');
+        });
     } catch (err) {
       return [];
     }

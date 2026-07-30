@@ -266,7 +266,7 @@ export default async function ArticlePage({
   const article = await useCase.executeGet(slug);
   if (!article) notFound();
 
-  useCase.executeIncrementViews(slug).catch(() => {});
+  useCase.executeIncrementViews().catch(() => {});
 
   return (
     <article style={{ paddingTop: "52px", minHeight: "100vh" }}>
