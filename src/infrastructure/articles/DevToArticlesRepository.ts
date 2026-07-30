@@ -1,6 +1,16 @@
 import { ArticlesRepository } from "../../domain/articles/repository";
 import { Article, ArticleListItem } from "../../domain/articles/types";
 
+const VALID_TAGS = ["engineering", "design", "essay"] as const;
+type ValidTag = typeof VALID_TAGS[number];
+
+function normalizeTag(tagList: string[]): ValidTag {
+  for (const t of tagList) {
+    if (VALID_TAGS.includes(t as ValidTag)) return t as ValidTag;
+  }
+  return "engineering";
+}
+
 export class DevToArticlesRepository implements ArticlesRepository {
   private username = process.env.DEVTO_USERNAME || "novitaguok";
 
@@ -11,7 +21,7 @@ export class DevToArticlesRepository implements ArticlesRepository {
   }): Promise<ArticleListItem[]> {
     const limit = opts?.limit ?? 30;
     const res = await fetch(`https://dev.to/api/articles?username=${this.username}&per_page=${limit}`, {
-      next: { revalidate: 3600 } // Cache for 1 hour
+      next: { revalidate: 60 } // Refresh every 60 seconds
     });
 
     if (!res.ok) throw new Error("Failed to fetch articles from Dev.to");
@@ -21,7 +31,7 @@ export class DevToArticlesRepository implements ArticlesRepository {
       id: post.id,
       slug: post.slug,
       title: post.title,
-      tag: post.tag_list?.[0] || "engineering",
+      tag: normalizeTag(post.tag_list ?? []),
       excerpt: post.description || "",
       readTime: post.reading_time_minutes || 1,
       views: post.page_views_count || 0,
@@ -47,7 +57,7 @@ export class DevToArticlesRepository implements ArticlesRepository {
 
   async getArticle(slug: string): Promise<Article | null> {
     const res = await fetch(`https://dev.to/api/articles/${this.username}/${slug}`, {
-      next: { revalidate: 3600 }
+      next: { revalidate: 60 }
     });
 
     if (!res.ok) return null;
@@ -57,7 +67,7 @@ export class DevToArticlesRepository implements ArticlesRepository {
       id: post.id,
       slug: post.slug,
       title: post.title,
-      tag: post.tag_list?.[0] || "engineering",
+      tag: normalizeTag(post.tag_list ?? []),
       excerpt: post.description || "",
       body: post.body_markdown || "",
       readTime: post.reading_time_minutes || 1,
