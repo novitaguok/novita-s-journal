@@ -284,7 +284,7 @@ export default function Contact() {
               ))}
             </div>
 
-            <Annotation text="best way to reach me is email — I check it twice a day" />
+            <Annotation text="best way to reach me is email — I check it every hour" />
           </div>
         </div>
       </div>
