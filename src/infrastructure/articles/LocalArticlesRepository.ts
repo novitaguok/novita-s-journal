@@ -3,6 +3,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { ArticlesRepository } from '../../domain/articles/repository';
 import { Article, ArticleListItem } from '../../domain/articles/types';
+import { mapTagsToCategory } from '../../lib/data';
 
 export class LocalArticlesRepository implements ArticlesRepository {
   private contentDir = path.join(process.cwd(), 'content/articles');
@@ -28,7 +29,7 @@ export class LocalArticlesRepository implements ArticlesRepository {
         id: data.id || data.cuid || resolvedSlug,
         slug: resolvedSlug,
         title: data.title || 'Untitled',
-        tag: data.tag || 'engineering',
+        tag: mapTagsToCategory(data.tags || data.tag),
         excerpt: data.excerpt || data.description || '',
         body: content,
         readTime: data.readTime || this.calculateReadTime(content),
@@ -68,7 +69,7 @@ export class LocalArticlesRepository implements ArticlesRepository {
           id: data.id || data.cuid || resolvedSlug,
           slug: resolvedSlug,
           title: data.title || 'Untitled',
-          tag: data.tag || 'engineering',
+          tag: mapTagsToCategory(data.tags || data.tag),
           excerpt: data.excerpt || data.description || '',
           readTime: data.readTime || this.calculateReadTime(content),
           views: 0,
