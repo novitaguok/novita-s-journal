@@ -3,6 +3,7 @@ title: "From Input to Impact: Driving Results with Prompt Engineering (Part 2: A
 datePublished: 2026-07-27T02:44:29.167Z
 cuid: cms2min2o00000aj6ajrwgld0
 slug: from-input-to-impact-driving-results-with-prompt-engineering-part-2-adaptive-prompting
+tags: ["ai", "prompt-engineering"]
 ---
 
 Also known as Dynamic Prompting is a technique where an AI system adapts its instructions in real time based on user input, task complexity, or feedback.

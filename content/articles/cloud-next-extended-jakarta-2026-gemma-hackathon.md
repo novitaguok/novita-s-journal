@@ -1,7 +1,7 @@
 ---
 title: "Cloud Next Extended Jakarta 2026 x KodingDeepDive: Building InpoLoker at the Gemma Hackathon"
 date: "2026-08-02"
-tags: ["GDGCloudJakarta", "CloudNext", "GoogleCloud", "KodingDeepDive", "Gemma", "Hackathon", "Antigravity", "AI"]
+tags: ["events", "gdg", "hackathon", "ai", "gemma"]
 author: "Novita (郭瑩慧)"
 coverImage: "/images/articles/cloud-next-2026-1.jpg"
 ---
