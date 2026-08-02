@@ -23,11 +23,17 @@ export const TAG_COLORS: Record<
     darkBg: "rgba(49,120,198,0.2)",
     darkText: "#79b8ff",
   },
-  engineering: {
-    bg: "rgba(49,120,198,0.12)",
-    text: "#3178c6",
-    darkBg: "rgba(49,120,198,0.2)",
-    darkText: "#79b8ff",
+  AI: {
+    bg: "rgba(147,51,234,0.12)",
+    text: "#9333ea",
+    darkBg: "rgba(147,51,234,0.2)",
+    darkText: "#c084fc",
+  },
+  Events: {
+    bg: "rgba(234,88,12,0.12)",
+    text: "#ea580c",
+    darkBg: "rgba(234,88,12,0.2)",
+    darkText: "#fb923c",
   },
   design: {
     bg: "rgba(219,88,115,0.12)",
@@ -44,39 +50,28 @@ export const TAG_COLORS: Record<
 };
 
 const SOFTWARE_ENGINEERING_KEYWORDS = [
-  "ai",
-  "llm",
-  "prompt-engineering",
-  "gemma",
-  "artificial-intelligence",
-  "machine-learning",
-  "agentic-ai",
-  "antigravity",
-  "google",
-  "googlecloud",
-  "gdg",
-  "gdgcloudjakarta",
-  "cloudnext",
-  "hackathon",
-  "events",
-  "tech-community",
-  "conference",
-  "android",
-  "ios",
-  "swift",
-  "swiftui",
-  "mobile-dev",
-  "python",
-  "javascript",
-  "typescript",
-  "engineering",
-  "software engineering",
-  "software-engineering",
-  "kodingdeepdive",
-  "growthmindset",
-  "womenintech",
-  "hackingwithswift",
-  "twostraws",
+  "android", "ios", "swift", "swiftui", "mobile-dev", "python", "javascript", 
+  "typescript", "gamedev", "engineering", "software engineering", "software-engineering", 
+  "frontend", "backend", "iosdev", "appledeveloper", "hackingwithswift", "twostraws"
+];
+
+const AI_KEYWORDS = [
+  "ai", "llm", "prompt-engineering", "gemma", "artificial-intelligence", 
+  "machine-learning", "agentic-ai", "antigravity"
+];
+
+const EVENTS_KEYWORDS = [
+  "events", "gdg", "googlecloud", "hackathon", "tech-community", "cloudnext", 
+  "conference", "gdgcloudjakarta", "kodingdeepdive"
+];
+
+const DESIGN_KEYWORDS = [
+  "design", "ui-ux", "figma", "prototyping", "typography", "branding"
+];
+
+const ESSAY_KEYWORDS = [
+  "essay", "growth-mindset", "career", "women-in-tech", "reflections", "learning",
+  "growthmindset", "womenintech"
 ];
 
 export function mapTagsToCategory(
@@ -91,13 +86,19 @@ export function mapTagsToCategory(
   for (const t of tags) {
     if (typeof t === "string") {
       const normalized = t.toLowerCase().trim();
+      if (AI_KEYWORDS.includes(normalized)) {
+        return "AI";
+      }
+      if (EVENTS_KEYWORDS.includes(normalized)) {
+        return "Events";
+      }
       if (SOFTWARE_ENGINEERING_KEYWORDS.includes(normalized)) {
         return "Software Engineering";
       }
-      if (normalized === "design") {
+      if (DESIGN_KEYWORDS.includes(normalized)) {
         return "design";
       }
-      if (normalized === "essay") {
+      if (ESSAY_KEYWORDS.includes(normalized)) {
         return "essay";
       }
     }

@@ -275,7 +275,7 @@ export function TagBadge({ tag }: { tag: string }) {
         color: c.text,
       }}
     >
-      {tag}
+      {tag === "design" ? "Design" : tag === "essay" ? "Essay" : tag}
     </span>
   );
 }
