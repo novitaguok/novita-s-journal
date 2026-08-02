@@ -1,6 +1,7 @@
 import matter from "gray-matter";
 import { ArticlesRepository } from "../../domain/articles/repository";
 import { Article, ArticleListItem } from "../../domain/articles/types";
+import { mapTagsToCategory } from "../../lib/data";
 
 const CACHE_TAG_ALL = "articles";
 const cacheTagFor = (slug: string) => `article-${slug}`;
@@ -54,7 +55,7 @@ export class GitHubArticlesRepository implements ArticlesRepository {
       id: data.id ?? data.cuid ?? slug,
       slug: data.slug ?? slug,
       title: data.title ?? "Untitled",
-      tag: data.tag ?? "engineering",
+      tag: mapTagsToCategory(data.tags || data.tag),
       excerpt: data.excerpt ?? data.description ?? "",
       body: content,
       readTime: data.readTime ?? this.calculateReadTime(content),

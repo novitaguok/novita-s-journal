@@ -1,15 +1,6 @@
 import { ArticlesRepository } from "../../domain/articles/repository";
 import { Article, ArticleListItem } from "../../domain/articles/types";
-
-const VALID_TAGS = ["engineering", "design", "essay"] as const;
-type ValidTag = typeof VALID_TAGS[number];
-
-function normalizeTag(tagList: string[]): ValidTag {
-  for (const t of tagList) {
-    if (VALID_TAGS.includes(t as ValidTag)) return t as ValidTag;
-  }
-  return "engineering";
-}
+import { mapTagsToCategory } from "../../lib/data";
 
 export class DevToArticlesRepository implements ArticlesRepository {
   private username = process.env.DEVTO_USERNAME || "novitaguok";
@@ -31,7 +22,7 @@ export class DevToArticlesRepository implements ArticlesRepository {
       id: post.id,
       slug: post.slug,
       title: post.title,
-      tag: normalizeTag(post.tag_list ?? []),
+      tag: mapTagsToCategory(post.tag_list),
       excerpt: post.description || "",
       readTime: post.reading_time_minutes || 1,
       views: post.page_views_count || 0,
@@ -67,7 +58,7 @@ export class DevToArticlesRepository implements ArticlesRepository {
       id: post.id,
       slug: post.slug,
       title: post.title,
-      tag: normalizeTag(post.tag_list ?? []),
+      tag: mapTagsToCategory(post.tag_list),
       excerpt: post.description || "",
       body: post.body_markdown || "",
       readTime: post.reading_time_minutes || 1,

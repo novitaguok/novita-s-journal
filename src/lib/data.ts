@@ -17,6 +17,12 @@ export const TAG_COLORS: Record<
   string,
   { bg: string; text: string; darkBg: string; darkText: string }
 > = {
+  "Software Engineering": {
+    bg: "rgba(49,120,198,0.12)",
+    text: "#3178c6",
+    darkBg: "rgba(49,120,198,0.2)",
+    darkText: "#79b8ff",
+  },
   engineering: {
     bg: "rgba(49,120,198,0.12)",
     text: "#3178c6",
@@ -36,6 +42,69 @@ export const TAG_COLORS: Record<
     darkText: "#85e89d",
   },
 };
+
+const SOFTWARE_ENGINEERING_KEYWORDS = [
+  "ai",
+  "llm",
+  "prompt-engineering",
+  "gemma",
+  "artificial-intelligence",
+  "machine-learning",
+  "agentic-ai",
+  "antigravity",
+  "google",
+  "googlecloud",
+  "gdg",
+  "gdgcloudjakarta",
+  "cloudnext",
+  "hackathon",
+  "events",
+  "tech-community",
+  "conference",
+  "android",
+  "ios",
+  "swift",
+  "swiftui",
+  "mobile-dev",
+  "python",
+  "javascript",
+  "typescript",
+  "engineering",
+  "software engineering",
+  "software-engineering",
+  "kodingdeepdive",
+  "growthmindset",
+  "womenintech",
+  "hackingwithswift",
+  "twostraws",
+];
+
+export function mapTagsToCategory(
+  input: string | string[] | undefined | null
+): string {
+  const tags = Array.isArray(input)
+    ? input
+    : typeof input === "string"
+    ? [input]
+    : [];
+
+  for (const t of tags) {
+    if (typeof t === "string") {
+      const normalized = t.toLowerCase().trim();
+      if (SOFTWARE_ENGINEERING_KEYWORDS.includes(normalized)) {
+        return "Software Engineering";
+      }
+      if (normalized === "design") {
+        return "design";
+      }
+      if (normalized === "essay") {
+        return "essay";
+      }
+    }
+  }
+
+  return "Software Engineering";
+}
 
 export const STATUS_META: Record<string, { label: string; color: string }> = {
   active: { label: "active", color: "#3fb950" },
