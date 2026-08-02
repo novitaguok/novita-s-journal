@@ -6,11 +6,9 @@ author: "Novita (郭瑩慧)"
 coverImage: "/images/articles/cloud-next-2026-1.jpg"
 ---
 
-# Cloud Next Extended Jakarta 2026 x KodingDeepDive: Building InpoLoker at the Gemma Hackathon 🚀🔥
-
 ![Novita at Google Office](/images/articles/cloud-next-2026-1.jpg)
 
-Spent an incredible time at **Cloud Next Extended Jakarta 2026 x KodingDeepDive** with **GDG Cloud Jakarta**! 
+Spent an incredible time at **Cloud Next Extended Jakarta 2026 x KodingDeepDive** with **GDG Cloud Jakarta**!
 
 While the technical sessions on Agentic AI and enterprise security were top-tier, the Gemma Hackathon was hands-down my favorite part of the event. There’s nothing quite like the rush of moving from concept to working prototype under a countdown timer!
 
@@ -31,7 +29,7 @@ Instead of just flagging suspicious job postings, **InpoLoker** uses agentic wor
 
 ## 🤝 Special Thanks & Community
 
-Massive thanks to my awesome hackathon teammate **Zulfiana Rahmi** for the incredible synergy, problem-solving, and non-stop hustle during the build sprint! 
+Massive thanks to my awesome hackathon teammate **Zulfiana Rahmi** for the incredible synergy, problem-solving, and non-stop hustle during the build sprint!
 
 A huge shoutout as well to all the fantastic speakers who dropped so much knowledge on agent development, reliability, and cloud architecture throughout the day:
 - **Kenrick Tandrian** *(Customer Engineer at Google Cloud)*
