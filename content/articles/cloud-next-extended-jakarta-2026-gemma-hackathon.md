@@ -6,9 +6,8 @@ author: "Novita (郭瑩慧)"
 coverImage: "/images/articles/cloud-next-2026-1.jpg"
 ---
 
+On 1st August 2026, I spent an incredible time at **Cloud Next Extended Jakarta 2026 x KodingDeepDive** with **GDG Cloud Jakarta**!
 ![Novita at Google Office](/images/articles/cloud-next-2026-1.jpg)
-
-Spent an incredible time at **Cloud Next Extended Jakarta 2026 x KodingDeepDive** with **GDG Cloud Jakarta**!
 
 While the technical sessions on Agentic AI and enterprise security were top-tier, the Gemma Hackathon was hands-down my favorite part of the event. There’s nothing quite like the rush of moving from concept to working prototype under a countdown timer!
 
