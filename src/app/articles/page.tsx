@@ -259,7 +259,7 @@ export default function ArticleListPage() {
                 onClick={() => setActiveTag(tag)}
                 style={tagButtonStyle(tag, activeTag === tag)}
               >
-                {tag}
+                {tag === "design" ? "Design" : tag === "essay" ? "Essay" : tag}
               </button>
             ))}
           </div>

@@ -35,11 +35,11 @@ export const TAG_COLORS: Record<
     darkBg: "rgba(234,88,12,0.2)",
     darkText: "#fb923c",
   },
-  engineering: {
-    bg: "rgba(49,120,198,0.12)",
-    text: "#3178c6",
-    darkBg: "rgba(49,120,198,0.2)",
-    darkText: "#79b8ff",
+  Design: {
+    bg: "rgba(219,88,115,0.12)",
+    text: "#c45a72",
+    darkBg: "rgba(219,88,115,0.2)",
+    darkText: "#f4a8b8",
   },
   design: {
     bg: "rgba(219,88,115,0.12)",
@@ -47,11 +47,23 @@ export const TAG_COLORS: Record<
     darkBg: "rgba(219,88,115,0.2)",
     darkText: "#f4a8b8",
   },
+  Essay: {
+    bg: "rgba(94,158,85,0.12)",
+    text: "#5a9a52",
+    darkBg: "rgba(94,158,85,0.2)",
+    darkText: "#85e89d",
+  },
   essay: {
     bg: "rgba(94,158,85,0.12)",
     text: "#5a9a52",
     darkBg: "rgba(94,158,85,0.2)",
     darkText: "#85e89d",
+  },
+  engineering: {
+    bg: "rgba(49,120,198,0.12)",
+    text: "#3178c6",
+    darkBg: "rgba(49,120,198,0.2)",
+    darkText: "#79b8ff",
   },
 };
 
