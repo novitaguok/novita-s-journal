@@ -11,13 +11,13 @@ const PROFILE_META = [
 
 const SKILLS = [
   "🛠️ Android Dev · iOS Dev",
-  "✍️ Writing weekly",
+  "✍️ Talking via writing",
   "🤝 Open to collabs",
 ];
 
 const BIO_PARAGRAPHS = [
-  "I'm a A generalist tech enthusiast that love exploring new tech (such as mobile, FE, BE, blockchain, etc). An exponential curve learner (instead of linear).",
-  "I write to think. The articles here are my attempt to articulate things I've half-understood.",
+  "A generalist tech enthusiast that love exploring anything.",
+  "I write to think. The articles here are my attempt to articulate things I've half-understood. Any feedbacks are welcomed!",
 ];
 
 const PRINCIPLES_CODE = `// What I care about
