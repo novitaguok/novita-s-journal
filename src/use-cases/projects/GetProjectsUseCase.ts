@@ -36,48 +36,37 @@ export class GetProjectsUseCase {
   }): Promise<Project[]> {
     let projects = await this.projectsRepo.getProjects(opts);
 
-    const pinnedRepoNames = [
-      "Owlite-Team/shelter-it-be",
-      "Owlite-Team/noveats-be",
-      "Owlite-Team/shelter-it-android",
-      "Owlite-Team/cinlok-be"
-    ];
-
-    // Merge snippet logic, calculate pinned state
-    projects = projects.map(p => {
+    // Attach snippets
+    projects = projects.map((p) => {
       const customSnippet = CUSTOM_SNIPPETS[p.repo];
       return {
         ...p,
-        snippet: customSnippet || this.generateSnippet(p.title, p.lang, p.stars, p.desc),
+        snippet:
+          customSnippet ||
+          this.generateSnippet(p.title, p.lang, p.stars, p.desc),
       };
     });
 
-    // Sort by stars descending to determine 'pinned'
-    projects.sort((a, b) => b.stars - a.stars);
-    
-    let pinnedCount = 0;
-    
-    // First, pin explicitly defined pinned repos
-    projects.forEach(p => {
-      if (pinnedRepoNames.includes(p.repo)) {
-        p.isPinned = true;
-        pinnedCount++;
-      }
-    });
+    const hasPinnedFromRepo = projects.some((p) => p.isPinned);
 
-    // Then fill the rest up to 6 with top starred repos
-    projects.forEach((p) => {
-      if (!p.isPinned && pinnedCount < 6) {
-        p.isPinned = true;
-        pinnedCount++;
-      }
-    });
+    // Fallback: If no projects were dynamically pinned by repository, pin top 6 starred repos
+    if (!hasPinnedFromRepo) {
+      const sortedByStars = [...projects].sort((a, b) => b.stars - a.stars);
+      const top6RepoNames = new Set(
+        sortedByStars.slice(0, 6).map((p) => p.repo)
+      );
+      projects.forEach((p) => {
+        if (top6RepoNames.has(p.repo)) {
+          p.isPinned = true;
+        }
+      });
+    }
 
     if (opts?.pinnedOnly) {
-      projects = projects.filter(p => p.isPinned);
+      projects = projects.filter((p) => p.isPinned);
     }
     if (opts?.status) {
-      projects = projects.filter(p => p.status === opts.status);
+      projects = projects.filter((p) => p.status === opts.status);
     }
 
     return projects;
