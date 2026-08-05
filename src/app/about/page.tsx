@@ -254,7 +254,7 @@ export default function About() {
             <div style={{ position: "relative" }}>
               <CodeBlock lang="ts" code={PRINCIPLES_CODE} />
               <Annotation
-                text="I actually believe all of these"
+                text="driven by purpose, written in code."
                 style={{ marginTop: "0.5rem" }}
               />
             </div>
