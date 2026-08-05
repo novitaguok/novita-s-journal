@@ -15,7 +15,6 @@ const GREETING = `// Hey there, I'm Novita 👋
 
 const me = {
 \u00A0\u00A0role: "Android Engineer",
-\u00A0\u00A0years: 4,
 \u00A0\u00A0location: "Jakarta, Indonesia",
 };`;
 
