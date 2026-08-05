@@ -62,7 +62,7 @@ const AI_KEYWORDS = [
 
 const EVENTS_KEYWORDS = [
   "events", "gdg", "googlecloud", "hackathon", "tech-community", "cloudnext", 
-  "conference", "gdgcloudjakarta", "kodingdeepdive"
+  "conference", "gdgcloudjakarta", "kodingdeepdive", "appledeveloperacademy", "paulhudson"
 ];
 
 const DESIGN_KEYWORDS = [
