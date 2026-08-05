@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { TAG_COLORS } from "../lib/data";
 import { Project } from "@/src/domain/projects/types";
-import { CodeBlock, WashBlob, Annotation, Rule } from "../components/Shared";
+import { ArticleListItem } from "@/src/domain/articles/types";
+import { CodeBlock, WashBlob, Annotation, Rule, TagBadge } from "../components/Shared";
 import { Section } from "../types";
 import { GitHubCalendar } from "react-github-calendar";
 import MiniRepoCard from "@/src/features/projects/components/MiniRepoCard";
@@ -296,11 +297,16 @@ export default function Home() {
   }, []);
 
   const [pinnedProjects, setPinnedProjects] = useState<Project[]>([]);
+  const [recentArticles, setRecentArticles] = useState<ArticleListItem[]>([]);
 
   useEffect(() => {
     fetch('/api/projects?isPinned=true')
       .then(res => res.json())
       .then(json => setPinnedProjects(json.data ?? []));
+
+    fetch('/api/articles?limit=3')
+      .then(res => res.json())
+      .then(json => setRecentArticles(json.data ?? []));
   }, []);
 
   return (
@@ -457,6 +463,32 @@ export default function Home() {
             </Link>
           </div>
           <Rule style={{ marginBottom: "1.5rem" }} />
+          <div style={articleList}>
+            {recentArticles.map((article) => (
+              <Link
+                key={article.id}
+                href={`/articles/${article.slug}`}
+                style={{ textDecoration: "none" }}
+              >
+                <div style={articleCardBase}>
+                  <div style={articleCardLeft}>
+                    <TagBadge tag={article.tag} />
+                    <span style={articleTitle}>{article.title}</span>
+                  </div>
+                  <div style={articleCardRight}>
+                    <span style={monoSmall}>
+                      {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <span style={monoSmall}>{article.readTime}m</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>
