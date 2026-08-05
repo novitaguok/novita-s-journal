@@ -429,7 +429,9 @@ export default function Home() {
           <div style={sectionHeader}>
             <div style={sectionHeaderLeft}>
               <h2 style={sectionHeading}>📌 Pinned</h2>
-              <span style={sectionAnnotation}>things I'm proud of</span>
+              <span style={sectionAnnotation}>
+                built during a fever dream at 3:00 AM. 🌙
+              </span>
             </div>
             <Link href="/projects" style={{ ...viewAllLink, textDecoration: "none" }}>
               view all repos →
