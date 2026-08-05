@@ -108,21 +108,67 @@ export class GitHubProjectsRepository implements ProjectsRepository {
     }
   }
 
+  private async fetchPinnedFallback(username: string): Promise<Project[]> {
+    const pinnedRepoNames = [
+      "Owlite-Team/shelter-it-be",
+      "Owlite-Team/noveats-be",
+      "Owlite-Team/shelter-it-android",
+      "Owlite-Team/cinlok-be",
+    ];
+
+    const promises = pinnedRepoNames.map((repo) =>
+      fetch(`https://api.github.com/repos/${repo}`, {
+        next: { revalidate: 3600 },
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null)
+    );
+
+    const reposData = (await Promise.all(promises)).filter(Boolean);
+
+    return reposData.map((r: any, idx: number) => ({
+      id: r.id,
+      repo: r.full_name,
+      title: r.name,
+      isPinned: true,
+      status: r.archived
+        ? "archived"
+        : new Date(r.pushed_at) >
+          new Date(Date.now() - 1000 * 60 * 60 * 24 * 180)
+        ? "active"
+        : "stable",
+      desc: r.description || "No description provided.",
+      longDesc: r.description || "No description provided.",
+      stack: r.topics || [],
+      lang: r.language || "Markdown",
+      langColor: this.getLangColor(r.language),
+      stars: r.stargazers_count,
+      forks: r.forks_count,
+      year: new Date(r.created_at).getFullYear().toString(),
+      demoUrl: r.homepage || null,
+      snippet: null,
+      sortOrder: idx,
+      createdAt: r.created_at,
+    }));
+  }
+
   async getProjects(opts?: {
     status?: "active" | "stable" | "archived";
     pinnedOnly?: boolean;
   }): Promise<Project[]> {
     const username = "novitaguok";
 
-    const [pinnedProjects, githubRes] = await Promise.all([
-      this.fetchPinnedFromGraphQL(username),
-      fetch(
-        `https://api.github.com/users/${username}/repos?per_page=100&sort=pushed`,
-        {
-          next: { revalidate: 3600 },
-        }
-      ),
-    ]);
+    let pinnedProjects = await this.fetchPinnedFromGraphQL(username);
+    if (!pinnedProjects.length) {
+      pinnedProjects = await this.fetchPinnedFallback(username);
+    }
+
+    const githubRes = await fetch(
+      `https://api.github.com/users/${username}/repos?per_page=100&sort=pushed`,
+      {
+        next: { revalidate: 3600 },
+      }
+    );
 
     if (!githubRes.ok) throw new Error("Failed to fetch from GitHub API");
 
