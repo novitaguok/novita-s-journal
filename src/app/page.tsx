@@ -365,7 +365,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <Annotation text="built 4 things this year, learned way more than I shipped" />
+            <Annotation text="built several things this year, learned way more than I shipped" />
           </div>
 
           {/* Activity feed */}
