@@ -1,7 +1,7 @@
 ---
 title: "Get Started with Swift: Exploring SwiftUI with Paul Hudson at Apple Developer Academy"
 date: "2026-07-01"
-tags: ["SwiftUI", "iOSDev", "AppleDeveloper", "TechCommunity", "GrowthMindset", "WomenInTech", "HackingWithSwift", "twostraws"]
+tags: ["Events", "SwiftUI", "iOSDev", "AppleDeveloper", "TechCommunity", "GrowthMindset", "WomenInTech", "HackingWithSwift", "twostraws"]
 author: "Novita (郭瑩慧)"
 coverImage: "/images/articles/swiftui-apple-academy-1.jpg"
 ---

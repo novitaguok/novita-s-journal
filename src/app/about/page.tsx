@@ -21,11 +21,7 @@ const BIO_PARAGRAPHS = [
 ];
 
 const PRINCIPLES_CODE = `// What I care about
-const principles = [
-\u00A0\u00A0"never too old to learn",
-\u00A0\u00A0"ship small, learn fast, be honest",
-\u00A0\u00A0"writing is thinking",
-];
+const principles = "never too old to learn";
 
 // What I'm working on right now
 const current = {
@@ -258,7 +254,7 @@ export default function About() {
             <div style={{ position: "relative" }}>
               <CodeBlock lang="ts" code={PRINCIPLES_CODE} />
               <Annotation
-                text="I actually believe all of these"
+                text="driven by purpose, written in code."
                 style={{ marginTop: "0.5rem" }}
               />
             </div>
