@@ -82,25 +82,82 @@ export function Annotation({
 export function CodeBlock({
   code,
   lang = "ts",
+  blockType = "code",
+  filename,
   style = {},
   compact = false,
 }: {
   code: string;
   lang?: string;
+  blockType?: "json" | "code" | "terminal" | "commands" | "object";
+  filename?: string;
   style?: React.CSSProperties;
   compact?: boolean;
 }) {
+  const [copied, setCopied] = React.useState(false);
+
+  const blockTypeMeta: Record<
+    string,
+    { label: string; bg: string; color: string; border: string; defaultFilename: string }
+  > = {
+    json: {
+      label: "JSON",
+      bg: "rgba(16, 185, 129, 0.12)",
+      color: "#34d399",
+      border: "rgba(16, 185, 129, 0.25)",
+      defaultFilename: "manifest.json",
+    },
+    code: {
+      label: "CODE",
+      bg: "rgba(59, 130, 246, 0.12)",
+      color: "#60a5fa",
+      border: "rgba(59, 130, 246, 0.25)",
+      defaultFilename: "main.ts",
+    },
+    terminal: {
+      label: "TERMINAL",
+      bg: "rgba(245, 158, 11, 0.12)",
+      color: "#fbbf24",
+      border: "rgba(245, 158, 11, 0.25)",
+      defaultFilename: "zsh — 80x24",
+    },
+    commands: {
+      label: "COMMANDS",
+      bg: "rgba(168, 85, 247, 0.12)",
+      color: "#c084fc",
+      border: "rgba(168, 85, 247, 0.25)",
+      defaultFilename: "quickstart.sh",
+    },
+    object: {
+      label: "OBJECT",
+      bg: "rgba(244, 63, 94, 0.12)",
+      color: "#fb7185",
+      border: "rgba(244, 63, 94, 0.25)",
+      defaultFilename: "instance.py",
+    },
+  };
+
+  const meta = blockTypeMeta[blockType] || blockTypeMeta.code;
+  const displayFilename = filename || meta.defaultFilename;
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const tokenize = (src: string) =>
     src.split("\n").map((line, li) => {
       const tokens: { text: string; type: string }[] = [];
       let rest = line;
       const push = (text: string, type: string) => tokens.push({ text, type });
       const patterns: [RegExp, string][] = [
-        [/^(\/\/[^\n]*)/, "comment"],
+        [/^(\/\/[^\n]*|#[^\n]*)/, "comment"],
         [/^(\/\*[\s\S]*?\*\/)/, "comment"],
         [/^("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/, "string"],
         [
-          /^(const|let|var|fn|function|return|pub|Vec|for|if|else|where|import|from|export|default|type|interface|async|await|=>|new|null|undefined|true|false|void|use|mod|impl|struct|enum|match|Some|None|Ok|Err|it|expect|describe|render)\b/,
+          /^(const|let|var|fn|function|return|pub|Vec|for|if|else|where|import|from|export|default|type|interface|async|await|=>|new|null|undefined|true|false|void|use|mod|impl|struct|enum|match|Some|None|Ok|Err|it|expect|describe|render|package|func|def|self)\b/,
           "kw",
         ],
         [/^(\b\d+(\.\d+)?\b)/, "num"],
@@ -125,7 +182,7 @@ export function CodeBlock({
           rest = rest.slice(1);
         }
       }
-      return { tokens, li };
+      return { tokens, li, raw: line };
     });
 
   const colors: Record<string, string> = {
@@ -140,13 +197,15 @@ export function CodeBlock({
     plain: "var(--ink-soft)",
   };
 
+  const isTerminalMode = blockType === "terminal" || blockType === "commands";
   const lines = tokenize(code);
+
   return (
     <div
       style={{
         background: "var(--canvas-code)",
         border: "1px solid var(--rule)",
-        borderRadius: "6px",
+        borderRadius: "8px",
         overflow: "hidden",
         fontFamily: "var(--f-mono)",
         fontSize: compact ? "0.65rem" : "0.72rem",
@@ -159,69 +218,113 @@ export function CodeBlock({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0.35rem 0.75rem",
+          padding: "0.4rem 0.75rem",
           borderBottom: "1px solid var(--rule)",
-          background: "rgba(0,0,0,0.02)",
+          background: "rgba(0,0,0,0.03)",
         }}
       >
-        <div style={{ display: "flex", gap: "5px" }}>
-          {["#fc5753", "#fdbc40", "#33c748"].map((c) => (
-            <div
-              key={c}
-              style={{
-                width: 9,
-                height: 9,
-                borderRadius: "50%",
-                background: c,
-                opacity: 0.7,
-              }}
-            />
-          ))}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", gap: "5px" }}>
+            {["#fc5753", "#fdbc40", "#33c748"].map((c) => (
+              <div
+                key={c}
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: "50%",
+                  background: c,
+                  opacity: 0.75,
+                }}
+              />
+            ))}
+          </div>
+          <span
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: "0.65rem",
+              color: "var(--ink-soft)",
+              fontWeight: 600,
+              marginLeft: "4px",
+            }}
+          >
+            {displayFilename}
+          </span>
         </div>
-        <span
-          style={{
-            fontFamily: "var(--f-mono)",
-            fontSize: "0.58rem",
-            color: "var(--ink-faint)",
-            letterSpacing: "0.06em",
-          }}
-        >
-          {lang}
-        </span>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: "0.55rem",
+              fontWeight: 700,
+              padding: "0.1rem 0.4rem",
+              borderRadius: "4px",
+              background: meta.bg,
+              color: meta.color,
+              border: `1px solid ${meta.border}`,
+              letterSpacing: "0.05em",
+            }}
+          >
+            {meta.label}
+          </span>
+
+          <button
+            onClick={handleCopy}
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: "0.58rem",
+              color: copied ? "#34d399" : "var(--ink-faint)",
+              background: "transparent",
+              border: "1px solid var(--rule)",
+              borderRadius: "4px",
+              padding: "0.15rem 0.45rem",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            title="Copy code"
+          >
+            {copied ? "Copied!" : "Copy"}
+          </button>
+        </div>
       </div>
+
       <div
         style={{
           padding: compact ? "0.5rem 0.75rem" : "0.75rem 1rem",
           overflowX: "auto",
         }}
       >
-        {lines.map(({ tokens, li }) => (
-          <div key={li} style={{ display: "flex" }}>
-            <span
-              style={{
-                color: "var(--ink-faint)",
-                minWidth: "1.5rem",
-                marginRight: "0.75rem",
-                opacity: 0.35,
-                userSelect: "none",
-                fontSize: "0.58rem",
-                paddingTop: "1px",
-              }}
-            >
-              {li + 1}
-            </span>
-            <span>
-              {tokens.map((tok, ti) => (
-                <span
-                  key={ti}
-                  style={{ color: colors[tok.type] || "var(--ink-soft)" }}
-                >
-                  {tok.text}
-                </span>
-              ))}
-            </span>
-          </div>
-        ))}
+        {lines.map(({ tokens, li, raw }) => {
+          const isPrompt = isTerminalMode && raw.trim().startsWith("$");
+          return (
+            <div key={li} style={{ display: "flex" }}>
+              <span
+                style={{
+                  color: isPrompt ? "#34d399" : "var(--ink-faint)",
+                  minWidth: "1.5rem",
+                  marginRight: "0.75rem",
+                  opacity: isPrompt ? 0.9 : 0.35,
+                  userSelect: "none",
+                  fontSize: "0.6rem",
+                  paddingTop: "1px",
+                  fontWeight: isPrompt ? 700 : 400,
+                }}
+              >
+                {isTerminalMode ? (isPrompt ? "$" : ">") : li + 1}
+              </span>
+              <span>
+                {tokens.map((tok, ti) => (
+                  <span
+                    key={ti}
+                    style={{ color: colors[tok.type] || "var(--ink-soft)" }}
+                  >
+                    {tok.text}
+                  </span>
+                ))}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
