@@ -178,16 +178,18 @@ export function CodeBlock({
             />
           ))}
         </div>
-        <span
-          style={{
-            fontFamily: "var(--f-mono)",
-            fontSize: "0.58rem",
-            color: "var(--ink-faint)",
-            letterSpacing: "0.06em",
-          }}
-        >
-          {lang}
-        </span>
+        {lang && !["code", "text", "plain", "copy"].includes(lang.toLowerCase().trim()) && (
+          <span
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: "0.58rem",
+              color: "var(--ink-faint)",
+              letterSpacing: "0.06em",
+            }}
+          >
+            {lang}
+          </span>
+        )}
       </div>
       <div
         style={{
@@ -294,9 +296,11 @@ export function Skeleton({
       style={{
         height,
         width,
-        background: "var(--canvas-card)",
+        background:
+          "linear-gradient(90deg, var(--canvas-card) 25%, var(--canvas-hover) 50%, var(--canvas-card) 75%)",
+        backgroundSize: "200% 100%",
         borderRadius: 4,
-        animation: "pulse 1.5s ease-in-out infinite",
+        animation: "shimmer 1.5s ease-in-out infinite",
         ...style,
       }}
     />

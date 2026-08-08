@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { STATUS_META } from "../../lib/data";
-import { Rule } from "../../components/Shared";
+import { Rule, Skeleton } from "../../components/Shared";
 
 import { Project } from "@/src/domain/projects/types";
 import FeaturedRepoCard from "@/src/features/projects/components/FeaturedRepoCard";
@@ -227,7 +227,29 @@ export default function ProjectListPage() {
           ))}
         </div>
 
-        {/* Pinned — featured cards */}
+        {/* Loading state with shimmer */}
+        {loading && (
+          <div style={{ marginBottom: "2rem" }}>
+            <div style={twoColGrid}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "var(--canvas-card)",
+                    border: "1px solid var(--rule)",
+                    borderRadius: "10px",
+                    padding: "1.25rem",
+                  }}
+                >
+                  <Skeleton height={100} style={{ marginBottom: "1rem" }} />
+                  <Skeleton height={20} width="60%" style={{ marginBottom: "0.5rem" }} />
+                  <Skeleton height={14} width="90%" style={{ marginBottom: "0.5rem" }} />
+                  <Skeleton height={14} width="40%" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {pinned.length > 0 && (
           <div style={{ marginBottom: "2rem" }}>
             <div
