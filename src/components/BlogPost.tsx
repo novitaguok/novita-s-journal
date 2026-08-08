@@ -13,6 +13,7 @@ import { ReadNext } from "./ReadNext";
 import ArticleLayoutWrapper from "./ArticleLayoutWrapper";
 import GiscusClient from "./GiscusClient";
 import { ArticleListItem } from "@/src/domain/articles/types";
+import { useTheme } from "./ThemeProvider";
 
 interface TocItem {
   id: string;
@@ -54,6 +55,7 @@ export function BlogPost({
   commentsComponent?: React.ReactNode;
   readNextArticles?: ArticleListItem[];
 }) {
+  const { isWide } = useTheme();
   const [activeId, setActiveId] = useState<string>("");
 
   const tocItems = useMemo(
@@ -440,7 +442,7 @@ export function BlogPost({
             style={{
               position: "fixed",
               top: "140px",
-              left: "calc(50% + 430px)",
+              left: isWide ? "calc(50% + 620px)" : "calc(50% + 430px)",
               width: "220px",
               maxHeight: "calc(100vh - 180px)",
               overflowY: "auto",
@@ -449,6 +451,7 @@ export function BlogPost({
               borderRadius: "8px",
               padding: "0.85rem 1rem",
               zIndex: 10,
+              transition: "left 0.3s ease",
             }}
             className="hidden xl:block"
           >
