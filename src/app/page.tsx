@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { TAG_COLORS } from "../lib/data";
 import { Project } from "@/src/domain/projects/types";
 import { ArticleListItem } from "@/src/domain/articles/types";
+import { StoryboardPost } from "@/src/domain/storyboard/types";
 import { CodeBlock, WashBlob, Annotation, Rule, TagBadge } from "../components/Shared";
 import { Section } from "../types";
 import { GitHubCalendar } from "react-github-calendar";
@@ -297,6 +298,7 @@ export default function Home() {
 
   const [pinnedProjects, setPinnedProjects] = useState<Project[]>([]);
   const [recentArticles, setRecentArticles] = useState<ArticleListItem[]>([]);
+  const [storyPosts, setStoryPosts] = useState<StoryboardPost[]>([]);
 
   useEffect(() => {
     fetch('/api/projects?isPinned=true')
@@ -306,6 +308,10 @@ export default function Home() {
     fetch('/api/articles?limit=3')
       .then(res => res.json())
       .then(json => setRecentArticles(json.data ?? []));
+
+    fetch('/api/storyboard?limit=3')
+      .then(res => res.json())
+      .then(json => setStoryPosts(json.data ?? []));
   }, []);
 
   return (
@@ -446,6 +452,36 @@ export default function Home() {
           <div style={pinnedGrid}>
             {pinnedProjects.map((project) => (
               <MiniRepoCard key={project.id} project={project} />
+            ))}
+          </div>
+        </div>
+
+        {/* Community storyboard preview */}
+        <div style={{ marginBottom: "4rem" }}>
+          <div style={sectionHeader}>
+            <div style={sectionHeaderLeft}>
+              <h2 style={sectionHeading}>🎬 Community Storyboard</h2>
+              <span style={sectionAnnotation}>thoughts, ideas & random stuff</span>
+            </div>
+            <Link
+              href="/storyboard"
+              style={{ ...viewAllLink, textDecoration: "none" }}
+            >
+              open the board →
+            </Link>
+          </div>
+          <Rule style={{ marginBottom: "1.5rem" }} />
+          <div style={articleList}>
+            {storyPosts.map((post) => (
+              <div key={post.id} style={articleCardBase}>
+                <div style={articleCardLeft}>
+                  <span style={{ fontSize: "0.9rem" }}>{post.category === "thought" ? "💭" : post.category === "suggestion" ? "💡" : post.category === "idea" ? "🚀" : "🎲"}</span>
+                  <span style={articleTitle}>{post.message.length > 60 ? post.message.slice(0, 60) + "…" : post.message}</span>
+                </div>
+                <div style={articleCardRight}>
+                  <span style={monoSmall}>{post.name || "anonymous"}</span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
