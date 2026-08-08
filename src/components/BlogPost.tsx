@@ -7,8 +7,12 @@ import remarkGfm from "remark-gfm";
 import { Article } from "@/src/domain/articles/types";
 import { CodeBlock, Rule, TagBadge } from "./Shared";
 import { Breadcrumbs } from "./Breadcrumbs";
+import { ProgressBar } from "./ProgressBar";
+import { AuthorCard } from "./AuthorCard";
+import { ReadNext } from "./ReadNext";
 import ArticleLayoutWrapper from "./ArticleLayoutWrapper";
 import GiscusClient from "./GiscusClient";
+import { ArticleListItem } from "@/src/domain/articles/types";
 
 interface TocItem {
   id: string;
@@ -44,9 +48,11 @@ function extractHeadings(markdown: string): TocItem[] {
 export function BlogPost({
   article,
   commentsComponent,
+  readNextArticles = [],
 }: {
   article: Article;
   commentsComponent?: React.ReactNode;
+  readNextArticles?: ArticleListItem[];
 }) {
   const [activeId, setActiveId] = useState<string>("");
 
@@ -296,6 +302,7 @@ export function BlogPost({
 
   return (
     <article style={{ paddingTop: "52px", minHeight: "100vh" }}>
+      <ProgressBar />
       <ArticleLayoutWrapper>
         <Link
           href="/articles"
@@ -500,6 +507,12 @@ export function BlogPost({
         </div>
 
         <Rule style={{ margin: "3rem 0 2rem" }} />
+
+        {/* Author Card */}
+        <AuthorCard />
+
+        {/* Read Next Recommendations */}
+        <ReadNext articles={readNextArticles} />
 
         {/* Comments Section */}
         <div style={{ marginTop: "3rem", marginBottom: "3rem" }}>

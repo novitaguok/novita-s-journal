@@ -36,5 +36,8 @@ export default async function ArticlePage({
 
   useCase.executeIncrementViews().catch(() => {});
 
-  return <BlogPost article={article} />;
+  const allArticles = await useCase.executeList();
+  const readNextArticles = allArticles.filter((a) => a.slug !== slug).slice(0, 2);
+
+  return <BlogPost article={article} readNextArticles={readNextArticles} />;
 }
