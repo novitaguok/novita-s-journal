@@ -421,90 +421,87 @@ export function BlogPost({
 
         <Rule style={{ marginBottom: "2.5rem" }} />
 
-        {/* 2-Column Content + TOC Sidebar */}
-        <div style={{ display: "flex", gap: "3rem", alignItems: "flex-start", position: "relative" }}>
-          {/* Main Article Body (max-w-2xl / max-w-prose ~ 65ch) */}
-          <div
-            className="prose prose-slate dark:prose-invert max-w-2xl max-w-prose leading-relaxed"
-            style={{
-              flex: 1,
-              minWidth: 0,
-              maxWidth: "68ch",
-            }}
-          >
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-              {article.body.replace(/!\[(.*?)\]\((.*?)\s+align=".*?"\)/g, '![$1]($2)')}
-            </ReactMarkdown>
-          </div>
-
-          {/* Sticky Table of Contents Sidebar */}
-          {tocItems.length > 0 && (
-            <aside
-              style={{
-                width: "240px",
-                flexShrink: 0,
-                position: "sticky",
-                top: "6rem",
-                maxHeight: "calc(100vh - 8rem)",
-                overflowY: "auto",
-                background: "var(--canvas-card)",
-                border: "1px solid var(--rule)",
-                borderRadius: "8px",
-                padding: "1rem",
-              }}
-              className="hidden lg:block"
-            >
-              <div
-                style={{
-                  fontFamily: "var(--f-mono)",
-                  fontSize: "0.62rem",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  color: "var(--ink-faint)",
-                  marginBottom: "0.75rem",
-                }}
-              >
-                Table of Contents
-              </div>
-              <nav style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                {tocItems.map((item) => {
-                  const isActive = activeId === item.id;
-                  return (
-                    <a
-                      key={item.id}
-                      href={`#${item.id}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const el = document.getElementById(item.id);
-                        if (el) {
-                          el.scrollIntoView({ behavior: "smooth" });
-                          setActiveId(item.id);
-                        }
-                      }}
-                      style={{
-                        fontFamily: "var(--f-mono)",
-                        fontSize: "0.65rem",
-                        lineHeight: "1.4",
-                        textDecoration: "none",
-                        color: isActive ? "var(--accent-link)" : "var(--ink-soft)",
-                        fontWeight: isActive ? 600 : 400,
-                        borderLeft: isActive ? "2px solid var(--accent-link)" : "2px solid transparent",
-                        marginLeft: isActive ? "-0.5rem" : "0",
-                        paddingLeft: isActive
-                          ? item.level === 3 ? "0.75rem" : "0.35rem"
-                          : item.level === 3 ? "0.75rem" : "0",
-                        transition: "all 0.15s ease",
-                      }}
-                    >
-                      {item.text}
-                    </a>
-                  );
-                })}
-              </nav>
-            </aside>
-          )}
+        {/* Main Article Body (max-w-2xl / max-w-prose ~ 65ch) */}
+        <div
+          className="prose prose-slate dark:prose-invert max-w-2xl max-w-prose leading-relaxed"
+          style={{
+            minWidth: 0,
+            maxWidth: "68ch",
+          }}
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+            {article.body.replace(/!\[(.*?)\]\((.*?)\s+align=".*?"\)/g, '![$1]($2)')}
+          </ReactMarkdown>
         </div>
+
+        {/* Floating Table of Contents Sidebar (Outside article content area) */}
+        {tocItems.length > 0 && (
+          <aside
+            style={{
+              position: "fixed",
+              top: "140px",
+              left: "calc(50% + 430px)",
+              width: "220px",
+              maxHeight: "calc(100vh - 180px)",
+              overflowY: "auto",
+              background: "var(--canvas-card)",
+              border: "1px solid var(--rule)",
+              borderRadius: "8px",
+              padding: "0.85rem 1rem",
+              zIndex: 10,
+            }}
+            className="hidden xl:block"
+          >
+            <div
+              style={{
+                fontFamily: "var(--f-mono)",
+                fontSize: "0.62rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "var(--ink-faint)",
+                marginBottom: "0.75rem",
+              }}
+            >
+              Table of Contents
+            </div>
+            <nav style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              {tocItems.map((item) => {
+                const isActive = activeId === item.id;
+                return (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const el = document.getElementById(item.id);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth" });
+                        setActiveId(item.id);
+                      }
+                    }}
+                    style={{
+                      fontFamily: "var(--f-mono)",
+                      fontSize: "0.65rem",
+                      lineHeight: "1.4",
+                      textDecoration: "none",
+                      color: isActive ? "var(--accent-link)" : "var(--ink-soft)",
+                      fontWeight: isActive ? 600 : 400,
+                      borderLeft: isActive ? "2px solid var(--accent-link)" : "2px solid transparent",
+                      marginLeft: isActive ? "-0.5rem" : "0",
+                      paddingLeft: isActive
+                        ? item.level === 3 ? "0.75rem" : "0.35rem"
+                        : item.level === 3 ? "0.75rem" : "0",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {item.text}
+                  </a>
+                );
+              })}
+            </nav>
+          </aside>
+        )}
 
         <Rule style={{ margin: "3rem 0 2rem" }} />
 
