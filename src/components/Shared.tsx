@@ -251,41 +251,7 @@ export function CodeBlock({
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span
-            style={{
-              fontFamily: "var(--f-mono)",
-              fontSize: "0.55rem",
-              fontWeight: 700,
-              padding: "0.1rem 0.4rem",
-              borderRadius: "4px",
-              background: meta.bg,
-              color: meta.color,
-              border: `1px solid ${meta.border}`,
-              letterSpacing: "0.05em",
-            }}
-          >
-            {meta.label}
-          </span>
 
-          <button
-            onClick={handleCopy}
-            style={{
-              fontFamily: "var(--f-mono)",
-              fontSize: "0.58rem",
-              color: copied ? "#34d399" : "var(--ink-faint)",
-              background: "transparent",
-              border: "1px solid var(--rule)",
-              borderRadius: "4px",
-              padding: "0.15rem 0.45rem",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            title="Copy code"
-          >
-            {copied ? "Copied!" : "Copy"}
-          </button>
-        </div>
       </div>
 
       <div
@@ -397,9 +363,11 @@ export function Skeleton({
       style={{
         height,
         width,
-        background: "var(--canvas-card)",
+        background:
+          "linear-gradient(90deg, var(--canvas-card) 25%, var(--canvas-hover) 50%, var(--canvas-card) 75%)",
+        backgroundSize: "200% 100%",
         borderRadius: 4,
-        animation: "pulse 1.5s ease-in-out infinite",
+        animation: "shimmer 1.5s ease-in-out infinite",
         ...style,
       }}
     />
