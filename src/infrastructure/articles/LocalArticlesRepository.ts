@@ -3,7 +3,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { ArticlesRepository } from '../../domain/articles/repository';
 import { Article, ArticleListItem } from '../../domain/articles/types';
-import { mapTagsToCategory } from '../../lib/data';
+import { mapTagsToCategory, mapTagsToCategories } from '../../lib/data';
 
 export class LocalArticlesRepository implements ArticlesRepository {
   private contentDir = path.join(process.cwd(), 'content/articles');
@@ -24,12 +24,14 @@ export class LocalArticlesRepository implements ArticlesRepository {
       // Prefer the frontmatter slug over the filename so local dev stays
       // consistent with the GitHub-as-CMS naming convention.
       const resolvedSlug = data.slug || slug;
+      const mappedTags = mapTagsToCategories(data.tags || data.tag);
 
       return {
         id: data.id || data.cuid || resolvedSlug,
         slug: resolvedSlug,
         title: data.title || 'Untitled',
-        tag: mapTagsToCategory(data.tags || data.tag),
+        tag: mappedTags[0] || mapTagsToCategory(data.tags || data.tag),
+        tags: mappedTags,
         excerpt: data.excerpt || data.description || '',
         body: content,
         readTime: data.readTime || this.calculateReadTime(content),
@@ -65,11 +67,14 @@ export class LocalArticlesRepository implements ArticlesRepository {
         if (data.isPublished === false) continue;
 
         const resolvedSlug = data.slug || slug;
+        const mappedTags = mapTagsToCategories(data.tags || data.tag);
+
         articles.push({
           id: data.id || data.cuid || resolvedSlug,
           slug: resolvedSlug,
           title: data.title || 'Untitled',
-          tag: mapTagsToCategory(data.tags || data.tag),
+          tag: mappedTags[0] || mapTagsToCategory(data.tags || data.tag),
+          tags: mappedTags,
           excerpt: data.excerpt || data.description || '',
           readTime: data.readTime || this.calculateReadTime(content),
           views: 0,
@@ -84,7 +89,9 @@ export class LocalArticlesRepository implements ArticlesRepository {
       articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
       if (opts?.tag && opts.tag !== 'all') {
-        articles = articles.filter(a => a.tag === opts.tag);
+        articles = articles.filter(a =>
+          a.tags ? a.tags.some(t => t.toLowerCase() === opts.tag!.toLowerCase()) : a.tag.toLowerCase() === opts.tag!.toLowerCase()
+        );
       }
 
       if (opts?.search) {

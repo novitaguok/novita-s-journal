@@ -74,37 +74,48 @@ const ESSAY_KEYWORDS = [
   "growthmindset", "womenintech"
 ];
 
-export function mapTagsToCategory(
+export function mapTagsToCategories(
   input: string | string[] | undefined | null
-): string {
-  const tags = Array.isArray(input)
+): string[] {
+  const rawTags = Array.isArray(input)
     ? input
     : typeof input === "string"
-    ? [input]
+    ? input.split(",").map((s) => s.trim())
     : [];
 
-  for (const t of tags) {
-    if (typeof t === "string") {
+  const mapped = new Set<string>();
+
+  for (const t of rawTags) {
+    if (typeof t === "string" && t) {
       const normalized = t.toLowerCase().trim();
       if (AI_KEYWORDS.includes(normalized)) {
-        return "AI";
-      }
-      if (EVENTS_KEYWORDS.includes(normalized)) {
-        return "Events";
-      }
-      if (SOFTWARE_ENGINEERING_KEYWORDS.includes(normalized)) {
-        return "Software Engineering";
-      }
-      if (DESIGN_KEYWORDS.includes(normalized)) {
-        return "design";
-      }
-      if (ESSAY_KEYWORDS.includes(normalized)) {
-        return "essay";
+        mapped.add("AI");
+      } else if (EVENTS_KEYWORDS.includes(normalized)) {
+        mapped.add("Events");
+      } else if (SOFTWARE_ENGINEERING_KEYWORDS.includes(normalized)) {
+        mapped.add("Software Engineering");
+      } else if (DESIGN_KEYWORDS.includes(normalized)) {
+        mapped.add("design");
+      } else if (ESSAY_KEYWORDS.includes(normalized)) {
+        mapped.add("essay");
+      } else {
+        mapped.add(t);
       }
     }
   }
 
-  return "Software Engineering";
+  if (mapped.size === 0) {
+    mapped.add("Software Engineering");
+  }
+
+  return Array.from(mapped);
+}
+
+export function mapTagsToCategory(
+  input: string | string[] | undefined | null
+): string {
+  const categories = mapTagsToCategories(input);
+  return categories[0] || "Software Engineering";
 }
 
 export const STATUS_META: Record<string, { label: string; color: string }> = {

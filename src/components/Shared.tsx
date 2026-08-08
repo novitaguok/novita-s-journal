@@ -112,25 +112,34 @@ export function WashBlob({
   );
 }
 
-export function TagBadge({ tag }: { tag: string }) {
-  const c = TAG_COLORS[tag] ?? {
-    bg: "var(--canvas-tag)",
-    text: "var(--ink-faint)",
-  };
+export function TagBadge({ tag, tags }: { tag?: string; tags?: string[] }) {
+  const list = tags && tags.length > 0 ? tags : tag ? [tag] : ["Software Engineering"];
+
   return (
-    <span
-      style={{
-        fontFamily: "var(--f-mono)",
-        fontSize: "0.58rem",
-        fontWeight: 600,
-        padding: "0.15rem 0.4rem",
-        borderRadius: 4,
-        background: c.bg,
-        color: c.text,
-      }}
-    >
-      {tag === "design" ? "Design" : tag === "essay" ? "Essay" : tag}
-    </span>
+    <div style={{ display: "inline-flex", gap: "0.3rem", flexWrap: "wrap" }}>
+      {list.map((t) => {
+        const c = TAG_COLORS[t] ?? {
+          bg: "var(--canvas-tag)",
+          text: "var(--ink-faint)",
+        };
+        return (
+          <span
+            key={t}
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: "0.58rem",
+              fontWeight: 600,
+              padding: "0.15rem 0.4rem",
+              borderRadius: 4,
+              background: c.bg,
+              color: c.text,
+            }}
+          >
+            {t === "design" ? "Design" : t === "essay" ? "Essay" : t}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 
