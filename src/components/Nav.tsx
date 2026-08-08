@@ -137,7 +137,9 @@ function SettingsMenu({
               (e.currentTarget.style.background = "transparent")
             }
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            >
               <span style={{ fontSize: "0.85rem" }}>{dark ? "☀️" : "🌙"}</span>
               dark mode
             </div>
@@ -155,7 +157,9 @@ function SettingsMenu({
                 (e.currentTarget.style.background = "transparent")
               }
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
                 <span style={{ fontSize: "0.85rem" }}>
                   {isWide ? "⇥⇤" : "⇤⇥"}
                 </span>
@@ -186,6 +190,7 @@ export default function Nav({
     { href: "/", label: "~/" },
     { href: "/articles", label: "writing/" },
     { href: "/projects", label: "work/" },
+    { href: "/storyboard", label: "storyboard/" },
     { href: "/about", label: "readme" },
   ];
   return (
@@ -270,9 +275,7 @@ export default function Nav({
               )}
               <span
                 style={{
-                  borderBottom: isActive
-                    ? "1.5px solid var(--ink)"
-                    : "none",
+                  borderBottom: isActive ? "1.5px solid var(--ink)" : "none",
                   paddingBottom: "1px",
                 }}
               >
