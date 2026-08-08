@@ -6,6 +6,7 @@ import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Article } from "@/src/domain/articles/types";
 import { CodeBlock, Rule, TagBadge } from "./Shared";
+import { Breadcrumbs } from "./Breadcrumbs";
 import ArticleLayoutWrapper from "./ArticleLayoutWrapper";
 import GiscusClient from "./GiscusClient";
 
@@ -315,6 +316,13 @@ export function BlogPost({
 
         {/* Article Header */}
         <header style={{ marginBottom: "2.5rem" }}>
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/" },
+              { label: "Blog", href: "/articles" },
+              { label: article.title },
+            ]}
+          />
           <div
             style={{
               display: "flex",

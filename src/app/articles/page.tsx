@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { TAG_COLORS } from "../../lib/data";
 import {
   Rule,
   Annotation,
-  CodeBlock,
   Skeleton,
   TagBadge,
 } from "../../components/Shared";
@@ -88,6 +88,7 @@ const clearButton: React.CSSProperties = {
 const tagGroup: React.CSSProperties = {
   display: "flex",
   gap: "0.35rem",
+  flexWrap: "wrap",
 };
 
 const resultCount: React.CSSProperties = {
@@ -101,18 +102,6 @@ const listWrapper: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "0.5rem",
-};
-
-const emptyState: React.CSSProperties = {
-  textAlign: "center",
-  padding: "3rem 0",
-};
-
-const emptyLabel: React.CSSProperties = {
-  fontFamily: "var(--f-mono)",
-  fontSize: "0.8rem",
-  color: "var(--ink-faint)",
-  marginBottom: "0.5rem",
 };
 
 const SEARCH_ICON_PATH =
@@ -136,35 +125,9 @@ function tagButtonStyle(tag: string, isActive: boolean): React.CSSProperties {
   };
 }
 
-function useDebounce(value: string, delay = 300) {
-  const [debounce, setDebounce] = useState(value);
-
-  useEffect(() => {
-    const timeOut = setTimeout(() => setDebounce(value), delay);
-    return () => clearTimeout(timeOut);
-  }, [value, delay]);
-
-  return debounce;
-}
-
-async function fetchArticles(
-  tag: string,
-  searchQ: string,
-): Promise<ArticleListItem[]> {
-  const param = new URLSearchParams();
-
-  if (tag !== "all") param.set("tag", tag);
-  if (searchQ) param.set("search", searchQ);
-
-  const res = await fetch(`/api/articles?${param}`); // TODO: put in a constant class
-  const json = await res.json();
-
-  return json.data ?? [];
-}
-
 function articleCardStyle(
   isHovered: boolean,
-  borderColor: string,
+  borderColor: string
 ): React.CSSProperties {
   return {
     borderLeft: `3px solid ${isHovered ? borderColor : "var(--rule)"}`,
@@ -176,19 +139,6 @@ function articleCardStyle(
   };
 }
 
-const metaRow: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.6rem",
-  marginBottom: "0.4rem",
-};
-
-const mono058: React.CSSProperties = {
-  fontFamily: "var(--f-mono)",
-  fontSize: "0.58rem",
-  color: "var(--ink-faint)",
-};
-
 const articleTitle: React.CSSProperties = {
   fontFamily: "var(--f-display)",
   fontSize: "1.1rem",
@@ -199,22 +149,68 @@ const articleTitle: React.CSSProperties = {
   marginBottom: "0.4rem",
 };
 
-export default function ArticleListPage() {
+function useDebounce(value: string, delay = 300) {
+  const [debounce, setDebounce] = useState(value);
+
+  useEffect(() => {
+    const timeOut = setTimeout(() => setDebounce(value), delay);
+    return () => clearTimeout(timeOut);
+  }, [value, delay]);
+
+  return debounce;
+}
+
+async function fetchArticles(): Promise<ArticleListItem[]> {
+  const res = await fetch("/api/articles");
+  const json = await res.json();
+  return json.data ?? [];
+}
+
+function ArticleListContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const urlTag = searchParams.get("tag") || searchParams.get("category") || "all";
   const [searchQ, setSearchQ] = useState("");
-  const [activeTag, setActiveTag] = useState<string>("all");
   const [hoveredId, setHoveredId] = useState<string | number | null>(null);
-  const [articleList, setArticleList] = useState<ArticleListItem[]>([]);
+  const [allArticles, setAllArticles] = useState<ArticleListItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const debounceSearchQ = useDebounce(searchQ);
 
   useEffect(() => {
     setLoading(true);
-    fetchArticles(activeTag, debounceSearchQ).then((data) => {
-      setArticleList(data);
+    fetchArticles().then((data) => {
+      setAllArticles(data);
       setLoading(false);
     });
-  }, [activeTag, debounceSearchQ]);
+  }, []);
+
+  const handleTagChange = (tag: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tag === "all") {
+      params.delete("tag");
+      params.delete("category");
+    } else {
+      params.set("tag", tag);
+    }
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
+  const filteredArticles = useMemo(() => {
+    return allArticles.filter((article) => {
+      const matchesTag =
+        urlTag === "all" ||
+        article.tag.toLowerCase() === urlTag.toLowerCase();
+      const matchesSearch =
+        !debounceSearchQ ||
+        article.title.toLowerCase().includes(debounceSearchQ.toLowerCase()) ||
+        article.excerpt.toLowerCase().includes(debounceSearchQ.toLowerCase());
+      return matchesTag && matchesSearch;
+    });
+  }, [allArticles, urlTag, debounceSearchQ]);
 
   return (
     <div style={pageWrapper}>
@@ -223,7 +219,7 @@ export default function ArticleListPage() {
         <div style={headerRow}>
           <h2 style={heading}>writing/</h2>
           <span style={headingAnnotation}>
-            things I figured out ({articleList.length} posts)
+            things I figured out ({filteredArticles.length} posts)
           </span>
         </div>
         <Rule style={{ marginBottom: "1.5rem" }} />
@@ -256,8 +252,11 @@ export default function ArticleListPage() {
             {TAGS.map((tag) => (
               <button
                 key={tag}
-                onClick={() => setActiveTag(tag)}
-                style={tagButtonStyle(tag, activeTag === tag)}
+                onClick={() => handleTagChange(tag)}
+                style={tagButtonStyle(
+                  tag,
+                  urlTag.toLowerCase() === tag.toLowerCase()
+                )}
               >
                 {tag === "design" ? "Design" : tag === "essay" ? "Essay" : tag}
               </button>
@@ -266,9 +265,9 @@ export default function ArticleListPage() {
         </div>
 
         {/* Count */}
-        {!loading && (searchQ || activeTag !== "all") && (
+        {!loading && (searchQ || urlTag !== "all") && (
           <p style={resultCount}>
-            {articleList.length} result{articleList.length !== 1 ? "s" : ""}
+            {filteredArticles.length} result{filteredArticles.length !== 1 ? "s" : ""}
             {searchQ ? ` for "${searchQ}"` : ""}
           </p>
         )}
@@ -303,7 +302,7 @@ export default function ArticleListPage() {
                 <Skeleton height={16} width="90%" />
               </div>
             ))
-          ) : articleList.length === 0 ? (
+          ) : filteredArticles.length === 0 ? (
             <div style={{ textAlign: "center", padding: "3rem 0" }}>
               <p
                 style={{
@@ -321,7 +320,7 @@ export default function ArticleListPage() {
               />
             </div>
           ) : (
-            articleList.map((article) => (
+            filteredArticles.map((article) => (
               <Link
                 key={article.id}
                 href={`/articles/${article.slug}`}
@@ -332,19 +331,8 @@ export default function ArticleListPage() {
                   onMouseLeave={() => setHoveredId(null)}
                   style={articleCardStyle(
                     hoveredId === article.id,
-                    (TAG_COLORS[article.tag] ?? TAG_COLORS["Software Engineering"]).text,
+                    (TAG_COLORS[article.tag] ?? TAG_COLORS["Software Engineering"]).text
                   )}
-                  // style={{
-                  //   borderLeft: `3px solid ${hoveredId === article.id ? "var(--accent)" : "var(--rule)"}`,
-                  //   padding: "1.25rem",
-                  //   background:
-                  //     hoveredId === article.id
-                  //       ? "var(--canvas-hover)"
-                  //       : "transparent",
-                  //   borderRadius: "0 8px 8px 0",
-                  //   transition: "all 0.2s ease",
-                  //   cursor: "pointer",
-                  // }}
                 >
                   <div
                     style={{
@@ -368,7 +356,7 @@ export default function ArticleListPage() {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
-                        },
+                        }
                       )}
                     </span>
                     <span
@@ -401,5 +389,13 @@ export default function ArticleListPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ArticleListPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ArticleListContent />
+    </Suspense>
   );
 }
