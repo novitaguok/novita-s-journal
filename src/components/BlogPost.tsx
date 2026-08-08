@@ -10,6 +10,7 @@ import { Breadcrumbs } from "./Breadcrumbs";
 import { ProgressBar } from "./ProgressBar";
 import { AuthorCard } from "./AuthorCard";
 import { ReadNext } from "./ReadNext";
+import { ImageZoom } from "./ImageZoom";
 import ArticleLayoutWrapper from "./ArticleLayoutWrapper";
 import GiscusClient from "./GiscusClient";
 import { ArticleListItem } from "@/src/domain/articles/types";
@@ -281,18 +282,7 @@ export function BlogPost({
       </td>
     ),
     img: ({ src, alt }) => (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={alt ?? ""}
-        style={{
-          maxWidth: "100%",
-          borderRadius: 8,
-          border: "1px solid var(--rule)",
-          margin: "1.5rem 0",
-          display: "block",
-        }}
-      />
+      <ImageZoom src={typeof src === "string" ? src : undefined} alt={alt} />
     ),
   };
 

@@ -82,7 +82,12 @@ const clearButton: React.CSSProperties = {
   background: "none",
   border: "none",
   cursor: "pointer",
-  padding: "0",
+  padding: "0 0.5rem",
+  minHeight: "44px",
+  minWidth: "44px",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
 };
 
 const tagGroup: React.CSSProperties = {
@@ -116,6 +121,11 @@ function tagButtonStyle(tag: string, isActive: boolean): React.CSSProperties {
     fontSize: "0.65rem",
     fontWeight: 600,
     padding: "0.35rem 0.75rem",
+    minHeight: "44px",
+    minWidth: "44px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: "5px",
     border: "1px solid var(--rule)",
     background: isActive ? (tc ? tc.bg : "var(--ink)") : "transparent",

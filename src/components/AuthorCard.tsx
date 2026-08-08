@@ -72,7 +72,14 @@ export function AuthorCard() {
             href="https://github.com/novitaguok"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "var(--ink-faint)", textDecoration: "none" }}
+            style={{
+              color: "var(--ink-faint)",
+              textDecoration: "none",
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "0 0.35rem",
+            }}
           >
             GitHub
           </a>
@@ -81,7 +88,14 @@ export function AuthorCard() {
             href="https://linkedin.com/in/novitaguok"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "var(--ink-faint)", textDecoration: "none" }}
+            style={{
+              color: "var(--ink-faint)",
+              textDecoration: "none",
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "0 0.35rem",
+            }}
           >
             LinkedIn
           </a>
@@ -90,7 +104,14 @@ export function AuthorCard() {
             href="https://x.com/novitaguok"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "var(--ink-faint)", textDecoration: "none" }}
+            style={{
+              color: "var(--ink-faint)",
+              textDecoration: "none",
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "0 0.35rem",
+            }}
           >
             X (Twitter)
           </a>
