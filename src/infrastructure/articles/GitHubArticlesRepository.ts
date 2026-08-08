@@ -1,7 +1,7 @@
 import matter from "gray-matter";
 import { ArticlesRepository } from "../../domain/articles/repository";
 import { Article, ArticleListItem } from "../../domain/articles/types";
-import { mapTagsToCategory } from "../../lib/data";
+import { mapTagsToCategory, mapTagsToCategories } from "../../lib/data";
 
 const CACHE_TAG_ALL = "articles";
 const cacheTagFor = (slug: string) => `article-${slug}`;
@@ -51,11 +51,13 @@ export class GitHubArticlesRepository implements ArticlesRepository {
 
   private parseMarkdown(rawMarkdown: string, slug: string): Article {
     const { data, content } = matter(rawMarkdown);
+    const mappedTags = mapTagsToCategories(data.tags || data.tag);
     return {
       id: data.id ?? data.cuid ?? slug,
       slug: data.slug ?? slug,
       title: data.title ?? "Untitled",
-      tag: mapTagsToCategory(data.tags || data.tag),
+      tag: mappedTags[0] || mapTagsToCategory(data.tags || data.tag),
+      tags: mappedTags,
       excerpt: data.excerpt ?? data.description ?? "",
       body: content,
       readTime: data.readTime ?? this.calculateReadTime(content),
@@ -111,6 +113,7 @@ export class GitHubArticlesRepository implements ArticlesRepository {
           slug: parsed.slug,
           title: parsed.title,
           tag: parsed.tag,
+          tags: parsed.tags,
           excerpt: parsed.excerpt,
           readTime: parsed.readTime,
           views: parsed.views,
@@ -132,8 +135,10 @@ export class GitHubArticlesRepository implements ArticlesRepository {
     );
 
     if (opts?.tag && opts.tag !== "all") {
-      result = result.filter(
-        (a) => a.tag.toLowerCase() === opts.tag!.toLowerCase()
+      result = result.filter((a) =>
+        a.tags
+          ? a.tags.some((t) => t.toLowerCase() === opts.tag!.toLowerCase())
+          : a.tag.toLowerCase() === opts.tag!.toLowerCase()
       );
     }
 

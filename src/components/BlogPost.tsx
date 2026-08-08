@@ -331,7 +331,7 @@ export function BlogPost({
               marginBottom: "1rem",
             }}
           >
-            <TagBadge tag={article.tag} />
+            <TagBadge tag={article.tag} tags={article.tags} />
             <span
               style={{
                 fontFamily: "var(--f-mono)",

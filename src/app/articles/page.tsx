@@ -213,7 +213,9 @@ function ArticleListContent() {
     return allArticles.filter((article) => {
       const matchesTag =
         urlTag === "all" ||
-        article.tag.toLowerCase() === urlTag.toLowerCase();
+        (article.tags && article.tags.length > 0
+          ? article.tags.some((t) => t.toLowerCase() === urlTag.toLowerCase())
+          : article.tag.toLowerCase() === urlTag.toLowerCase());
       const matchesSearch =
         !debounceSearchQ ||
         article.title.toLowerCase().includes(debounceSearchQ.toLowerCase()) ||
@@ -352,7 +354,7 @@ function ArticleListContent() {
                       marginBottom: "0.4rem",
                     }}
                   >
-                    <TagBadge tag={article.tag} />
+                    <TagBadge tag={article.tag} tags={article.tags} />
                     <span
                       style={{
                         fontFamily: "var(--f-mono)",

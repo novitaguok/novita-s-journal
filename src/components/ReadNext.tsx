@@ -68,7 +68,7 @@ export function ReadNext({ articles }: ReadNextProps) {
                   marginBottom: "0.5rem",
                 }}
               >
-                <TagBadge tag={article.tag} />
+                <TagBadge tag={article.tag} tags={article.tags} />
                 <span
                   style={{
                     fontFamily: "var(--f-mono)",
