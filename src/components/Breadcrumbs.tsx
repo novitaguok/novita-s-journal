@@ -41,6 +41,10 @@ export function Breadcrumbs({ items, style = {} }: BreadcrumbsProps) {
                   color: "var(--ink-faint)",
                   textDecoration: "none",
                   transition: "color 0.15s ease",
+                  minHeight: "44px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "0 0.25rem",
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
                 onMouseLeave={(e) =>
