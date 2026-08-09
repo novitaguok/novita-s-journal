@@ -1,21 +1,21 @@
-export type StoryboardCategory =
+export type GuestbookCategory =
   | "thought"
   | "suggestion"
   | "idea"
   | "random";
 
-export interface StoryboardAttachment {
+export interface GuestbookAttachment {
   url: string;
   name: string;
   type: string;
 }
 
-export interface StoryboardPost {
+export interface GuestbookPost {
   id: string;
   name: string | null;
-  category: StoryboardCategory;
+  category: GuestbookCategory;
   message: string;
-  attachmentUrls: StoryboardAttachment[];
+  attachmentUrls: GuestbookAttachment[];
   createdAt: string;
   isApproved: boolean;
   isPinned: boolean;

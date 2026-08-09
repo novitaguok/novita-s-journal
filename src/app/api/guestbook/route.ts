@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/src/lib/supabase/server";
 import {
-  StoryboardCategory,
-  StoryboardAttachment,
-} from "@/src/domain/storyboard/types";
-import { isSessionValid } from "@/src/app/api/storyboard/auth/route";
+  GuestbookCategory,
+  GuestbookAttachment,
+} from "@/src/domain/guestbook/types";
+import { isSessionValid } from "@/src/app/api/guestbook/auth/route";
 
 export const runtime = "nodejs";
 
-const CATEGORIES: StoryboardCategory[] = [
+const CATEGORIES: GuestbookCategory[] = [
   "thought",
   "suggestion",
   "idea",
@@ -19,7 +19,7 @@ const MAX_NAME_LENGTH = 40;
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_ATTACHMENTS = 4;
 
-function isAttachment(value: unknown): value is StoryboardAttachment {
+function isAttachment(value: unknown): value is GuestbookAttachment {
   if (typeof value !== "object" || value === null) return false;
   const a = value as Record<string, unknown>;
   return (
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     const supabase = createSupabaseServerClient();
 
     const { data, error } = await supabase
-      .from("storyboard")
+      .from("guestbook")
       .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
       .eq("is_approved", true)
       .order("is_pinned", { ascending: false })
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const category = body.category as StoryboardCategory;
+  const category = body.category as GuestbookCategory;
   if (!CATEGORIES.includes(category)) {
     return NextResponse.json(
       { data: null, error: `Category must be one of: ${CATEGORIES.join(", ")}` },
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     const supabase = createSupabaseServerClient();
 
     const { data, error } = await supabase
-      .from("storyboard")
+      .from("guestbook")
       .insert({
         name,
         category,
@@ -165,7 +165,7 @@ function isAuthorized(req: NextRequest): boolean {
 }
 
 // Admin-only: toggle the pinned state of a post. Requires a valid admin
-// session (HttpOnly cookie set via POST /api/storyboard/auth).
+// session (HttpOnly cookie set via POST /api/guestbook/auth).
 export async function PATCH(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json(
@@ -195,7 +195,7 @@ export async function PATCH(req: NextRequest) {
     const supabase = createSupabaseServerClient();
 
     const { data, error } = await supabase
-      .from("storyboard")
+      .from("guestbook")
       .update({ is_pinned: body.pinned === true })
       .eq("id", body.id)
       .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")

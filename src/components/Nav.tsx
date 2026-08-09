@@ -190,7 +190,7 @@ export default function Nav({
     { href: "/", label: "~/" },
     { href: "/articles", label: "writing/" },
     { href: "/projects", label: "work/" },
-    { href: "/storyboard", label: "storyboard/" },
+    { href: "/guestbook", label: "guestbook/" },
     { href: "/about", label: "readme" },
   ];
   return (

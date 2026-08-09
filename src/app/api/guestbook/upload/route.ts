@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 
 export const runtime = "nodejs";
 
-const BUCKET = "storyboard-attachments";
+const BUCKET = "guestbook-attachments";
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
