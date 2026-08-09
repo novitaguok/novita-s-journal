@@ -631,8 +631,20 @@ export default function StoryboardPage() {
   const [posts, setPosts] = useState<StoryboardPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [pinningId, setPinningId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPromptOpen, setAdminPromptOpen] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminError, setAdminError] = useState<string | null>(null);
+  const [adminBusy, setAdminBusy] = useState(false);
 
-  const isAdmin = Boolean(process.env.NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN);
+  // The login link is hidden by default; visiting /storyboard?admin=1
+  // reveals it so visitors never see the admin entry point.
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setShowAdminLogin(new URLSearchParams(window.location.search).get("admin") === "1");
+    }
+  }, []);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState("");
@@ -649,6 +661,14 @@ export default function StoryboardPage() {
     fetchPosts()
       .then(setPosts)
       .finally(() => setLoading(false));
+  }, []);
+
+  // Check whether an admin session cookie exists.
+  useEffect(() => {
+    fetch("/api/storyboard/auth")
+      .then((res) => res.json())
+      .then((json) => setIsAdmin(Boolean(json.data?.admin)))
+      .catch(() => setIsAdmin(false));
   }, []);
 
   // Close on Escape, lock body scroll while the modal is open.
@@ -765,10 +785,7 @@ export default function StoryboardPage() {
     try {
       const res = await fetch("/api/storyboard", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: post.id, pinned: !post.isPinned }),
       });
       const json = await res.json();
@@ -783,6 +800,44 @@ export default function StoryboardPage() {
       setError("Could not reach the server. Try again.");
     } finally {
       setPinningId(null);
+    }
+  }
+
+  async function handleAdminLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (adminBusy || !adminPassword) return;
+    setAdminBusy(true);
+    setAdminError(null);
+
+    try {
+      const res = await fetch("/api/storyboard/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        setAdminError(json.error ?? "Login failed");
+        return;
+      }
+
+      setIsAdmin(true);
+      setAdminPassword("");
+      setAdminPromptOpen(false);
+    } catch {
+      setAdminError("Could not reach the server. Try again.");
+    } finally {
+      setAdminBusy(false);
+    }
+  }
+
+  async function handleAdminLogout() {
+    try {
+      await fetch("/api/storyboard/auth", { method: "DELETE" });
+    } finally {
+      setIsAdmin(false);
+      setAdminPromptOpen(false);
     }
   }
 
@@ -854,6 +909,35 @@ export default function StoryboardPage() {
             <button onClick={openModal} style={primaryButton}>
               ✏️ ink your think!
             </button>
+            {isAdmin ? (
+              <button
+                onClick={handleAdminLogout}
+                title="Log out of admin mode"
+                style={{
+                  ...pinButton,
+                  color: "var(--accent-link)",
+                  borderColor: "var(--rule-dark)",
+                }}
+              >
+                admin ✓
+              </button>
+            ) : (
+              showAdminLogin && (
+                <button
+                  onClick={() => {
+                    setAdminError(null);
+                    setAdminPromptOpen(true);
+                  }}
+                  title="Admin login"
+                  style={{
+                    ...pinButton,
+                    opacity: 0.55,
+                  }}
+                >
+                  admin
+                </button>
+              )
+            )}
           </div>
         </div>
 
@@ -1231,6 +1315,113 @@ export default function StoryboardPage() {
                 <span style={{ ...monoSmall, marginLeft: "auto" }}>
                   {message.length}/500
                 </span>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin login modal */}
+      {adminPromptOpen && (
+        <div
+          style={overlay}
+          onClick={() => !adminBusy && setAdminPromptOpen(false)}
+        >
+          <div
+            style={modal}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Admin login"
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "1rem",
+              }}
+            >
+              <h3
+                style={{
+                  fontFamily: "var(--f-display)",
+                  fontSize: "1.15rem",
+                  fontWeight: 700,
+                  color: "var(--ink)",
+                  letterSpacing: "-0.015em",
+                }}
+              >
+                admin 🔒
+              </h3>
+              <button
+                onClick={() => !adminBusy && setAdminPromptOpen(false)}
+                aria-label="Close"
+                style={{
+                  fontFamily: "var(--f-mono)",
+                  fontSize: "0.8rem",
+                  color: "var(--ink-faint)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "0.2rem",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAdminLogin}>
+              <input
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="password"
+                autoFocus
+                style={inputStyle}
+              />
+              {adminError && (
+                <p
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontSize: "0.68rem",
+                    color: "#d73a49",
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  {adminError}
+                </p>
+              )}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.75rem",
+                  marginTop: "1rem",
+                }}
+              >
+                <button
+                  type="submit"
+                  disabled={adminBusy || !adminPassword}
+                  style={{
+                    ...primaryButton,
+                    opacity: adminBusy || !adminPassword ? 0.5 : 1,
+                  }}
+                >
+                  {adminBusy ? "checking…" : "unlock"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => !adminBusy && setAdminPromptOpen(false)}
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontSize: "0.7rem",
+                    color: "var(--ink-faint)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  cancel
+                </button>
               </div>
             </form>
           </div>
