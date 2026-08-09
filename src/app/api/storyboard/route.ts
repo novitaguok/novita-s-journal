@@ -41,8 +41,9 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("storyboard")
-      .select("id, name, category, message, attachment_urls, created_at, is_approved")
+      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
       .eq("is_approved", true)
+      .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -59,6 +60,7 @@ export async function GET(req: NextRequest) {
           .slice(0, MAX_ATTACHMENTS),
         createdAt: row.created_at,
         isApproved: row.is_approved,
+        isPinned: row.is_pinned ?? false,
       })),
       error: null,
     });
@@ -126,7 +128,7 @@ export async function POST(req: NextRequest) {
         attachment_urls: attachmentUrls,
         is_approved: true,
       })
-      .select("id, name, category, message, attachment_urls, created_at, is_approved")
+      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
       .single();
 
     if (error) throw error;
@@ -143,11 +145,81 @@ export async function POST(req: NextRequest) {
             .slice(0, MAX_ATTACHMENTS),
           createdAt: data.created_at,
           isApproved: data.is_approved,
+          isPinned: data.is_pinned ?? false,
         },
         error: null,
       },
       { status: 201 },
     );
+  } catch (err: any) {
+    return NextResponse.json(
+      { data: null, error: err.message },
+      { status: 500 },
+    );
+  }
+}
+
+function isAuthorized(req: NextRequest): boolean {
+  const secret = process.env.NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN;
+  if (!secret) return false;
+  const authHeader = req.headers.get("authorization");
+  return authHeader === `Bearer ${secret}`;
+}
+
+// Admin-only: toggle the pinned state of a post. Uses the storyboard admin
+// token (NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN) sent as a Bearer header.
+export async function PATCH(req: NextRequest) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json(
+      { data: null, error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
+  let body: { id?: string; pinned?: boolean };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { data: null, error: "Invalid JSON body" },
+      { status: 400 },
+    );
+  }
+
+  if (!body.id) {
+    return NextResponse.json(
+      { data: null, error: "Missing post id" },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const supabase = createSupabaseServerClient();
+
+    const { data, error } = await supabase
+      .from("storyboard")
+      .update({ is_pinned: body.pinned === true })
+      .eq("id", body.id)
+      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      data: {
+        id: data.id,
+        name: data.name,
+        category: data.category,
+        message: data.message,
+        attachmentUrls: (data.attachment_urls ?? [])
+          .filter(isAttachment)
+          .slice(0, MAX_ATTACHMENTS),
+        createdAt: data.created_at,
+        isApproved: data.is_approved,
+        isPinned: data.is_pinned ?? false,
+      },
+      error: null,
+    });
   } catch (err: any) {
     return NextResponse.json(
       { data: null, error: err.message },

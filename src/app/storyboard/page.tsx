@@ -105,8 +105,7 @@ const clampFade: React.CSSProperties = {
   right: 0,
   height: "48px",
   pointerEvents: "none",
-  background:
-    "linear-gradient(to bottom, transparent, var(--canvas-card))",
+  background: "linear-gradient(to bottom, transparent, var(--canvas-card))",
 };
 
 const expandToggle: React.CSSProperties = {
@@ -119,6 +118,19 @@ const expandToggle: React.CSSProperties = {
   padding: "0.35rem 0 0",
   textDecoration: "underline",
   textUnderlineOffset: "2px",
+};
+
+const pinButton: React.CSSProperties = {
+  fontFamily: "var(--f-mono)",
+  fontSize: "0.58rem",
+  fontWeight: 600,
+  background: "none",
+  border: "1px solid var(--rule)",
+  borderRadius: "5px",
+  padding: "0.15rem 0.5rem",
+  cursor: "pointer",
+  color: "var(--ink-faint)",
+  transition: "all 0.15s",
 };
 
 // Composer markdown toolbar
@@ -411,9 +423,7 @@ function isImage(att: StoryboardAttachment): boolean {
 }
 
 const mdComponents: Components = {
-  p: ({ children }) => (
-    <p style={{ marginBottom: "0.5rem" }}>{children}</p>
-  ),
+  p: ({ children }) => <p style={{ marginBottom: "0.5rem" }}>{children}</p>,
   a: ({ href, children }) => (
     <a
       href={href}
@@ -429,9 +439,7 @@ const mdComponents: Components = {
     </a>
   ),
   strong: ({ children }) => (
-    <strong style={{ fontWeight: 700, color: "var(--ink)" }}>
-      {children}
-    </strong>
+    <strong style={{ fontWeight: 700, color: "var(--ink)" }}>{children}</strong>
   ),
   em: ({ children }) => (
     <em style={{ fontStyle: "italic", color: "var(--ink-soft)" }}>
@@ -490,15 +498,25 @@ const mdComponents: Components = {
       {children}
     </ol>
   ),
-  li: ({ children }) => (
-    <li style={{ marginBottom: "0.25rem" }}>{children}</li>
-  ),
+  li: ({ children }) => <li style={{ marginBottom: "0.25rem" }}>{children}</li>,
   hr: () => (
-    <div style={{ height: 1, background: "var(--rule)", margin: "0.75rem 0" }} />
+    <div
+      style={{ height: 1, background: "var(--rule)", margin: "0.75rem 0" }}
+    />
   ),
 };
 
-function StoryCard({ post }: { post: StoryboardPost }) {
+function StoryCard({
+  post,
+  isAdmin,
+  onTogglePin,
+  pinning,
+}: {
+  post: StoryboardPost;
+  isAdmin: boolean;
+  onTogglePin: (post: StoryboardPost) => void;
+  pinning: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
   const meta = CATEGORY_META[post.category];
   const isLong = post.message.length > 220;
@@ -522,6 +540,25 @@ function StoryCard({ post }: { post: StoryboardPost }) {
           {meta.icon} {meta.label}
         </span>
         <span style={monoSmall}>{post.name || "anonymous"}</span>
+        {isAdmin && (
+          <button
+            onClick={() => onTogglePin(post)}
+            disabled={pinning}
+            title={post.isPinned ? "Unpin" : "Pin to top"}
+            style={{
+              ...pinButton,
+              ...(post.isPinned
+                ? {
+                    color: "var(--accent-link)",
+                    borderColor: "var(--rule-dark)",
+                  }
+                : null),
+              opacity: pinning ? 0.5 : 1,
+            }}
+          >
+            {post.isPinned ? "📌 pinned" : "📌 pin"}
+          </button>
+        )}
         <span style={{ ...monoSmall, marginLeft: "auto" }}>
           {formatRelative(post.createdAt)}
         </span>
@@ -564,11 +601,7 @@ function StoryCard({ post }: { post: StoryboardPost }) {
               title={att.name}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={att.url}
-                alt={att.name}
-                style={cardThumbSmall}
-              />
+              <img src={att.url} alt={att.name} style={cardThumbSmall} />
             </a>
           ))}
           {others.map((att) => (
@@ -597,6 +630,9 @@ function StoryCard({ post }: { post: StoryboardPost }) {
 export default function StoryboardPage() {
   const [posts, setPosts] = useState<StoryboardPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [pinningId, setPinningId] = useState<string | null>(null);
+
+  const isAdmin = Boolean(process.env.NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState("");
@@ -697,7 +733,8 @@ export default function StoryboardPage() {
     const { selectionStart, selectionEnd, value } = el;
     const selected = value.slice(selectionStart, selectionEnd);
     const wrapped = `${prefix}${selected || placeholder}${suffix}`;
-    const next = value.slice(0, selectionStart) + wrapped + value.slice(selectionEnd);
+    const next =
+      value.slice(0, selectionStart) + wrapped + value.slice(selectionEnd);
 
     setMessage(next);
     requestAnimationFrame(() => {
@@ -721,6 +758,34 @@ export default function StoryboardPage() {
     },
   };
 
+  async function handleTogglePin(post: StoryboardPost) {
+    if (!isAdmin || pinningId) return;
+    setPinningId(post.id);
+
+    try {
+      const res = await fetch("/api/storyboard", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN}`,
+        },
+        body: JSON.stringify({ id: post.id, pinned: !post.isPinned }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.error ?? "Could not update pin");
+        return;
+      }
+
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? json.data : p)));
+    } catch {
+      setError("Could not reach the server. Try again.");
+    } finally {
+      setPinningId(null);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!message.trim() || submitting) return;
@@ -732,7 +797,12 @@ export default function StoryboardPage() {
       const res = await fetch("/api/storyboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, category, message, attachmentUrls: attachments }),
+        body: JSON.stringify({
+          name,
+          category,
+          message,
+          attachmentUrls: attachments,
+        }),
       });
       const json = await res.json();
 
@@ -770,7 +840,7 @@ export default function StoryboardPage() {
 
         <div style={headerBottom}>
           <span style={monoSmall}>
-            {loading ? "loading…" : `${posts.length} pinned`}
+            {loading ? "loading…" : `${posts.length} posts`}
           </span>
           <div
             style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
@@ -782,7 +852,7 @@ export default function StoryboardPage() {
               />
             )}
             <button onClick={openModal} style={primaryButton}>
-              📌 pin something
+              ✏️ ink your think!
             </button>
           </div>
         </div>
@@ -805,16 +875,98 @@ export default function StoryboardPage() {
               the board is empty
             </p>
             <Annotation
-              text="be the first to pin something up!"
+              text="be the first to share your thought!"
               style={{ justifyContent: "center", marginBottom: "1rem" }}
             />
           </div>
         ) : (
-          <div style={board}>
-            {posts.map((post) => (
-              <StoryCard key={post.id} post={post} />
-            ))}
-          </div>
+          <>
+            {posts.some((p) => p.isPinned) && (
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      ...monoSmall,
+                      fontWeight: 700,
+                      color: "var(--accent-link)",
+                    }}
+                  >
+                    📌 pinned
+                  </span>
+                  <div
+                    style={{
+                      flex: 1,
+                      height: "1px",
+                      background: "var(--rule)",
+                    }}
+                  />
+                </div>
+                <div style={board}>
+                  {posts
+                    .filter((p) => p.isPinned)
+                    .map((post) => (
+                      <StoryCard
+                        key={post.id}
+                        post={post}
+                        isAdmin={isAdmin}
+                        onTogglePin={handleTogglePin}
+                        pinning={pinningId === post.id}
+                      />
+                    ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              {posts.some((p) => p.isPinned) && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      ...monoSmall,
+                      fontWeight: 700,
+                      color: "var(--ink-faint)",
+                    }}
+                  >
+                    more...
+                  </span>
+                  <div
+                    style={{
+                      flex: 1,
+                      height: "1px",
+                      background: "var(--rule)",
+                    }}
+                  />
+                </div>
+              )}
+              <div style={board}>
+                {posts
+                  .filter((p) => !p.isPinned)
+                  .map((post) => (
+                    <StoryCard
+                      key={post.id}
+                      post={post}
+                      isAdmin={isAdmin}
+                      onTogglePin={handleTogglePin}
+                      pinning={pinningId === post.id}
+                    />
+                  ))}
+              </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -845,7 +997,7 @@ export default function StoryboardPage() {
                   letterSpacing: "-0.015em",
                 }}
               >
-                pin something up 📌
+                ✏️ ink your think!
               </h3>
               <button
                 onClick={closeModal}
@@ -908,7 +1060,9 @@ export default function StoryboardPage() {
                     accept="image/*"
                     multiple
                     onChange={handleUpload}
-                    disabled={uploading || attachments.length >= MAX_ATTACHMENTS}
+                    disabled={
+                      uploading || attachments.length >= MAX_ATTACHMENTS
+                    }
                     style={{ display: "none" }}
                   />
                   <span style={monoSmall}>
