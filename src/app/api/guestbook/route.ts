@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/src/lib/supabase/server";
 import {
   GuestbookCategory,
   GuestbookAttachment,
+  GuestbookPost,
 } from "@/src/domain/guestbook/types";
 import { isSessionValid } from "@/src/app/api/guestbook/auth/route";
 
@@ -30,6 +31,24 @@ function isAttachment(value: unknown): value is GuestbookAttachment {
   );
 }
 
+const SELECT_COLUMNS =
+  "id, name, category, message, attachment_urls, created_at, is_approved, is_pinned";
+
+function mapRowToPost(row: any): GuestbookPost {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    message: row.message,
+    attachmentUrls: (row.attachment_urls ?? [])
+      .filter(isAttachment)
+      .slice(0, MAX_ATTACHMENTS),
+    createdAt: row.created_at,
+    isApproved: row.is_approved,
+    isPinned: row.is_pinned ?? false,
+  };
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const limit = Math.min(
@@ -42,7 +61,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("guestbook")
-      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
+      .select(SELECT_COLUMNS)
       .eq("is_approved", true)
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
@@ -51,18 +70,7 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({
-      data: (data ?? []).map((row) => ({
-        id: row.id,
-        name: row.name,
-        category: row.category,
-        message: row.message,
-        attachmentUrls: (row.attachment_urls ?? [])
-          .filter(isAttachment)
-          .slice(0, MAX_ATTACHMENTS),
-        createdAt: row.created_at,
-        isApproved: row.is_approved,
-        isPinned: row.is_pinned ?? false,
-      })),
+      data: (data ?? []).map(mapRowToPost),
       error: null,
     });
   } catch (err: any) {
@@ -129,25 +137,14 @@ export async function POST(req: NextRequest) {
         attachment_urls: attachmentUrls,
         is_approved: true,
       })
-      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
+      .select(SELECT_COLUMNS)
       .single();
 
     if (error) throw error;
 
     return NextResponse.json(
       {
-        data: {
-          id: data.id,
-          name: data.name,
-          category: data.category,
-          message: data.message,
-          attachmentUrls: (data.attachment_urls ?? [])
-            .filter(isAttachment)
-            .slice(0, MAX_ATTACHMENTS),
-          createdAt: data.created_at,
-          isApproved: data.is_approved,
-          isPinned: data.is_pinned ?? false,
-        },
+        data: mapRowToPost(data),
         error: null,
       },
       { status: 201 },
@@ -160,14 +157,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function isAuthorized(req: NextRequest): boolean {
-  return isSessionValid(req);
-}
-
 // Admin-only: toggle the pinned state of a post. Requires a valid admin
 // session (HttpOnly cookie set via POST /api/guestbook/auth).
 export async function PATCH(req: NextRequest) {
-  if (!isAuthorized(req)) {
+  if (!isSessionValid(req)) {
     return NextResponse.json(
       { data: null, error: "Unauthorized" },
       { status: 401 },
@@ -198,24 +191,13 @@ export async function PATCH(req: NextRequest) {
       .from("guestbook")
       .update({ is_pinned: body.pinned === true })
       .eq("id", body.id)
-      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
+      .select(SELECT_COLUMNS)
       .single();
 
     if (error) throw error;
 
     return NextResponse.json({
-      data: {
-        id: data.id,
-        name: data.name,
-        category: data.category,
-        message: data.message,
-        attachmentUrls: (data.attachment_urls ?? [])
-          .filter(isAttachment)
-          .slice(0, MAX_ATTACHMENTS),
-        createdAt: data.created_at,
-        isApproved: data.is_approved,
-        isPinned: data.is_pinned ?? false,
-      },
+      data: mapRowToPost(data),
       error: null,
     });
   } catch (err: any) {
