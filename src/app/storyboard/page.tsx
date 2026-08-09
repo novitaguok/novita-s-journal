@@ -637,6 +637,15 @@ export default function StoryboardPage() {
   const [adminError, setAdminError] = useState<string | null>(null);
   const [adminBusy, setAdminBusy] = useState(false);
 
+  // The login link is hidden by default; visiting /storyboard?admin=1
+  // reveals it so visitors never see the admin entry point.
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setShowAdminLogin(new URLSearchParams(window.location.search).get("admin") === "1");
+    }
+  }, []);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState("");
   const [category, setCategory] = useState<StoryboardCategory>("thought");
@@ -913,19 +922,21 @@ export default function StoryboardPage() {
                 admin ✓
               </button>
             ) : (
-              <button
-                onClick={() => {
-                  setAdminError(null);
-                  setAdminPromptOpen(true);
-                }}
-                title="Admin login"
-                style={{
-                  ...pinButton,
-                  opacity: 0.55,
-                }}
-              >
-                admin
-              </button>
+              showAdminLogin && (
+                <button
+                  onClick={() => {
+                    setAdminError(null);
+                    setAdminPromptOpen(true);
+                  }}
+                  title="Admin login"
+                  style={{
+                    ...pinButton,
+                    opacity: 0.55,
+                  }}
+                >
+                  admin
+                </button>
+              )
             )}
           </div>
         </div>
