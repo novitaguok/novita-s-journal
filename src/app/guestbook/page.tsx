@@ -5,10 +5,10 @@ import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Rule, Annotation } from "../../components/Shared";
 import {
-  StoryboardPost,
-  StoryboardCategory,
-  StoryboardAttachment,
-} from "@/src/domain/storyboard/types";
+  GuestbookPost,
+  GuestbookCategory,
+  GuestbookAttachment,
+} from "@/src/domain/guestbook/types";
 
 const pageWrapper: React.CSSProperties = {
   paddingTop: "52px",
@@ -330,7 +330,7 @@ const categoryGroup: React.CSSProperties = {
 };
 
 const CATEGORY_META: Record<
-  StoryboardCategory,
+  GuestbookCategory,
   { label: string; icon: string; color: string; bg: string }
 > = {
   thought: {
@@ -359,9 +359,9 @@ const CATEGORY_META: Record<
   },
 };
 
-const CATEGORIES = Object.keys(CATEGORY_META) as StoryboardCategory[];
+const CATEGORIES = Object.keys(CATEGORY_META) as GuestbookCategory[];
 
-function categoryBadgeStyle(category: StoryboardCategory): React.CSSProperties {
+function categoryBadgeStyle(category: GuestbookCategory): React.CSSProperties {
   const meta = CATEGORY_META[category];
   return {
     fontFamily: "var(--f-mono)",
@@ -375,7 +375,7 @@ function categoryBadgeStyle(category: StoryboardCategory): React.CSSProperties {
 }
 
 function categoryButtonStyle(
-  category: StoryboardCategory,
+  category: GuestbookCategory,
   isActive: boolean,
 ): React.CSSProperties {
   const meta = CATEGORY_META[category];
@@ -412,13 +412,13 @@ function formatRelative(dateStr: string): string {
   });
 }
 
-async function fetchPosts(): Promise<StoryboardPost[]> {
-  const res = await fetch("/api/storyboard");
+async function fetchPosts(): Promise<GuestbookPost[]> {
+  const res = await fetch("/api/guestbook");
   const json = await res.json();
   return json.data ?? [];
 }
 
-function isImage(att: StoryboardAttachment): boolean {
+function isImage(att: GuestbookAttachment): boolean {
   return att.type.startsWith("image/");
 }
 
@@ -512,9 +512,9 @@ function StoryCard({
   onTogglePin,
   pinning,
 }: {
-  post: StoryboardPost;
+  post: GuestbookPost;
   isAdmin: boolean;
-  onTogglePin: (post: StoryboardPost) => void;
+  onTogglePin: (post: GuestbookPost) => void;
   pinning: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -627,8 +627,8 @@ function StoryCard({
   );
 }
 
-export default function StoryboardPage() {
-  const [posts, setPosts] = useState<StoryboardPost[]>([]);
+export default function GuestbookPage() {
+  const [posts, setPosts] = useState<GuestbookPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [pinningId, setPinningId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -637,7 +637,7 @@ export default function StoryboardPage() {
   const [adminError, setAdminError] = useState<string | null>(null);
   const [adminBusy, setAdminBusy] = useState(false);
 
-  // The login link is hidden by default; visiting /storyboard?admin=1
+  // The login link is hidden by default; visiting /guestbook?admin=1
   // reveals it so visitors never see the admin entry point.
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   useEffect(() => {
@@ -648,9 +648,9 @@ export default function StoryboardPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState("");
-  const [category, setCategory] = useState<StoryboardCategory>("thought");
+  const [category, setCategory] = useState<GuestbookCategory>("thought");
   const [message, setMessage] = useState("");
-  const [attachments, setAttachments] = useState<StoryboardAttachment[]>([]);
+  const [attachments, setAttachments] = useState<GuestbookAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -665,7 +665,7 @@ export default function StoryboardPage() {
 
   // Check whether an admin session cookie exists.
   useEffect(() => {
-    fetch("/api/storyboard/auth")
+    fetch("/api/guestbook/auth")
       .then((res) => res.json())
       .then((json) => setIsAdmin(Boolean(json.data?.admin)))
       .catch(() => setIsAdmin(false));
@@ -714,11 +714,11 @@ export default function StoryboardPage() {
     setError(null);
 
     try {
-      const uploaded: StoryboardAttachment[] = [];
+      const uploaded: GuestbookAttachment[] = [];
       for (const file of files) {
         const fd = new FormData();
         fd.append("file", file);
-        const res = await fetch("/api/storyboard/upload", {
+        const res = await fetch("/api/guestbook/upload", {
           method: "POST",
           body: fd,
         });
@@ -778,12 +778,12 @@ export default function StoryboardPage() {
     },
   };
 
-  async function handleTogglePin(post: StoryboardPost) {
+  async function handleTogglePin(post: GuestbookPost) {
     if (!isAdmin || pinningId) return;
     setPinningId(post.id);
 
     try {
-      const res = await fetch("/api/storyboard", {
+      const res = await fetch("/api/guestbook", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: post.id, pinned: !post.isPinned }),
@@ -810,7 +810,7 @@ export default function StoryboardPage() {
     setAdminError(null);
 
     try {
-      const res = await fetch("/api/storyboard/auth", {
+      const res = await fetch("/api/guestbook/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: adminPassword }),
@@ -834,7 +834,7 @@ export default function StoryboardPage() {
 
   async function handleAdminLogout() {
     try {
-      await fetch("/api/storyboard/auth", { method: "DELETE" });
+      await fetch("/api/guestbook/auth", { method: "DELETE" });
     } finally {
       setIsAdmin(false);
       setAdminPromptOpen(false);
@@ -849,7 +849,7 @@ export default function StoryboardPage() {
     setError(null);
 
     try {
-      const res = await fetch("/api/storyboard", {
+      const res = await fetch("/api/guestbook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -886,7 +886,7 @@ export default function StoryboardPage() {
       <div style={container}>
         {/* Header */}
         <div style={headerRow}>
-          <h2 style={heading}>story/</h2>
+          <h2 style={heading}>guestbook/</h2>
           <span style={headingAnnotation}>
             a board for the community — sharing is caring
           </span>
@@ -1062,7 +1062,7 @@ export default function StoryboardPage() {
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Pin something to the storyboard"
+            aria-label="Pin something to the guestbook"
           >
             <div
               style={{
@@ -1257,7 +1257,7 @@ export default function StoryboardPage() {
                   maxLength={500}
                   rows={4}
                   autoFocus
-                  className="story-message"
+                  className="guestbook-message"
                   placeholder="a thought, suggestion, idea, or something random…"
                   style={{ ...inputStyle, resize: "vertical" }}
                 />

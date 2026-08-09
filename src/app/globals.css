@@ -83,8 +83,8 @@ textarea::placeholder {
   color: var(--ink-faint);
 }
 
-/* Lighter placeholder for the storyboard message composer */
-.story-message::placeholder {
+/* Lighter placeholder for the guestbook message composer */
+.guestbook-message::placeholder {
   color: color-mix(in srgb, var(--ink-faint) 55%, transparent);
 }
 

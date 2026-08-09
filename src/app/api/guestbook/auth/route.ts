@@ -3,12 +3,12 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 export const runtime = "nodejs";
 
-const COOKIE_NAME = "storyboard_admin";
+const COOKIE_NAME = "guestbook_admin";
 const SESSION_TTL_SECONDS = 60 * 60 * 12; // 12 hours
 
 function getAuthSecret(): string {
-  const secret = process.env.STORYBOARD_AUTH_SECRET;
-  if (!secret) throw new Error("STORYBOARD_AUTH_SECRET is not set");
+  const secret = process.env.GUESTBOOK_AUTH_SECRET;
+  if (!secret) throw new Error("GUESTBOOK_AUTH_SECRET is not set");
   return secret;
 }
 
@@ -59,7 +59,7 @@ function isSessionValid(req: NextRequest): boolean {
   return Date.now() - issuedAt < SESSION_TTL_SECONDS * 1000;
 }
 
-// POST /api/storyboard/auth — log in with the admin password.
+// POST /api/guestbook/auth — log in with the admin password.
 export async function POST(req: NextRequest) {
   let body: { password?: string };
   try {
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const expected = process.env.STORYBOARD_ADMIN_PASSWORD;
+  const expected = process.env.GUESTBOOK_ADMIN_PASSWORD;
   if (!expected || typeof body.password !== "string" || !body.password) {
     return NextResponse.json(
       { data: null, error: "Password required" },
@@ -95,14 +95,14 @@ export async function POST(req: NextRequest) {
   return res;
 }
 
-// DELETE /api/storyboard/auth — log out, clearing the session cookie.
+// DELETE /api/guestbook/auth — log out, clearing the session cookie.
 export async function DELETE() {
   const res = NextResponse.json({ data: { admin: false }, error: null });
   clearSessionCookie(res);
   return res;
 }
 
-// GET /api/storyboard/auth — is the current session an admin?
+// GET /api/guestbook/auth — is the current session an admin?
 export async function GET(req: NextRequest) {
   return NextResponse.json({
     data: { admin: isSessionValid(req) },

@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/src/lib/supabase/server";
 import {
-  StoryboardCategory,
-  StoryboardAttachment,
-} from "@/src/domain/storyboard/types";
-import { isSessionValid } from "@/src/app/api/storyboard/auth/route";
+  GuestbookCategory,
+  GuestbookAttachment,
+  GuestbookPost,
+} from "@/src/domain/guestbook/types";
+import { isSessionValid } from "@/src/app/api/guestbook/auth/route";
 
 export const runtime = "nodejs";
 
-const CATEGORIES: StoryboardCategory[] = [
+const CATEGORIES: GuestbookCategory[] = [
   "thought",
   "suggestion",
   "idea",
@@ -19,7 +20,7 @@ const MAX_NAME_LENGTH = 40;
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_ATTACHMENTS = 4;
 
-function isAttachment(value: unknown): value is StoryboardAttachment {
+function isAttachment(value: unknown): value is GuestbookAttachment {
   if (typeof value !== "object" || value === null) return false;
   const a = value as Record<string, unknown>;
   return (
@@ -28,6 +29,24 @@ function isAttachment(value: unknown): value is StoryboardAttachment {
     typeof a.name === "string" &&
     typeof a.type === "string"
   );
+}
+
+const SELECT_COLUMNS =
+  "id, name, category, message, attachment_urls, created_at, is_approved, is_pinned";
+
+function mapRowToPost(row: any): GuestbookPost {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    message: row.message,
+    attachmentUrls: (row.attachment_urls ?? [])
+      .filter(isAttachment)
+      .slice(0, MAX_ATTACHMENTS),
+    createdAt: row.created_at,
+    isApproved: row.is_approved,
+    isPinned: row.is_pinned ?? false,
+  };
 }
 
 export async function GET(req: NextRequest) {
@@ -41,8 +60,8 @@ export async function GET(req: NextRequest) {
     const supabase = createSupabaseServerClient();
 
     const { data, error } = await supabase
-      .from("storyboard")
-      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
+      .from("guestbook")
+      .select(SELECT_COLUMNS)
       .eq("is_approved", true)
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
@@ -51,18 +70,7 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({
-      data: (data ?? []).map((row) => ({
-        id: row.id,
-        name: row.name,
-        category: row.category,
-        message: row.message,
-        attachmentUrls: (row.attachment_urls ?? [])
-          .filter(isAttachment)
-          .slice(0, MAX_ATTACHMENTS),
-        createdAt: row.created_at,
-        isApproved: row.is_approved,
-        isPinned: row.is_pinned ?? false,
-      })),
+      data: (data ?? []).map(mapRowToPost),
       error: null,
     });
   } catch (err: any) {
@@ -89,7 +97,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const category = body.category as StoryboardCategory;
+  const category = body.category as GuestbookCategory;
   if (!CATEGORIES.includes(category)) {
     return NextResponse.json(
       { data: null, error: `Category must be one of: ${CATEGORIES.join(", ")}` },
@@ -121,7 +129,7 @@ export async function POST(req: NextRequest) {
     const supabase = createSupabaseServerClient();
 
     const { data, error } = await supabase
-      .from("storyboard")
+      .from("guestbook")
       .insert({
         name,
         category,
@@ -129,25 +137,14 @@ export async function POST(req: NextRequest) {
         attachment_urls: attachmentUrls,
         is_approved: true,
       })
-      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
+      .select(SELECT_COLUMNS)
       .single();
 
     if (error) throw error;
 
     return NextResponse.json(
       {
-        data: {
-          id: data.id,
-          name: data.name,
-          category: data.category,
-          message: data.message,
-          attachmentUrls: (data.attachment_urls ?? [])
-            .filter(isAttachment)
-            .slice(0, MAX_ATTACHMENTS),
-          createdAt: data.created_at,
-          isApproved: data.is_approved,
-          isPinned: data.is_pinned ?? false,
-        },
+        data: mapRowToPost(data),
         error: null,
       },
       { status: 201 },
@@ -160,14 +157,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function isAuthorized(req: NextRequest): boolean {
-  return isSessionValid(req);
-}
-
 // Admin-only: toggle the pinned state of a post. Requires a valid admin
-// session (HttpOnly cookie set via POST /api/storyboard/auth).
+// session (HttpOnly cookie set via POST /api/guestbook/auth).
 export async function PATCH(req: NextRequest) {
-  if (!isAuthorized(req)) {
+  if (!isSessionValid(req)) {
     return NextResponse.json(
       { data: null, error: "Unauthorized" },
       { status: 401 },
@@ -195,27 +188,16 @@ export async function PATCH(req: NextRequest) {
     const supabase = createSupabaseServerClient();
 
     const { data, error } = await supabase
-      .from("storyboard")
+      .from("guestbook")
       .update({ is_pinned: body.pinned === true })
       .eq("id", body.id)
-      .select("id, name, category, message, attachment_urls, created_at, is_approved, is_pinned")
+      .select(SELECT_COLUMNS)
       .single();
 
     if (error) throw error;
 
     return NextResponse.json({
-      data: {
-        id: data.id,
-        name: data.name,
-        category: data.category,
-        message: data.message,
-        attachmentUrls: (data.attachment_urls ?? [])
-          .filter(isAttachment)
-          .slice(0, MAX_ATTACHMENTS),
-        createdAt: data.created_at,
-        isApproved: data.is_approved,
-        isPinned: data.is_pinned ?? false,
-      },
+      data: mapRowToPost(data),
       error: null,
     });
   } catch (err: any) {
