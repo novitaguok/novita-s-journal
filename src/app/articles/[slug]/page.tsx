@@ -18,9 +18,30 @@ export async function generateMetadata({
   const useCase = new GetArticlesUseCase();
   const article = await useCase.executeGet(slug);
   if (!article) return {};
+
+  const canonicalUrl = `https://www.novitaguok.com/articles/${article.slug}`;
+
   return {
     title: article.title,
     description: article.excerpt,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      type: "article",
+      url: canonicalUrl,
+      title: article.title,
+      description: article.excerpt,
+      publishedTime: article.publishedAt,
+      ...(article.updatedAt !== article.publishedAt && {
+        modifiedTime: article.updatedAt,
+      }),
+      authors: ["Novita (郭瑩慧)"],
+      siteName: "Novita",
+    },
+    twitter: {
+      card: "summary",
+      title: article.title,
+      description: article.excerpt,
+    },
   };
 }
 
