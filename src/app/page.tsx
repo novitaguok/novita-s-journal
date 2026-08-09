@@ -222,6 +222,16 @@ const monoSmall: React.CSSProperties = {
   color: "var(--ink-faint)",
 };
 
+const storyThumb: React.CSSProperties = {
+  width: "42px",
+  height: "42px",
+  objectFit: "cover",
+  borderRadius: "6px",
+  border: "1px solid var(--rule)",
+  flexShrink: 0,
+  display: "block",
+};
+
 function heroButtonStyle(
   variant: "primary" | "secondary" | "ghost",
 ): React.CSSProperties {
@@ -479,6 +489,14 @@ export default function Home() {
                   <span style={articleTitle}>{post.message.length > 60 ? post.message.slice(0, 60) + "…" : post.message}</span>
                 </div>
                 <div style={articleCardRight}>
+                  {post.attachmentUrls[0] && post.attachmentUrls[0].type.startsWith("image/") && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={post.attachmentUrls[0].url}
+                      alt={post.attachmentUrls[0].name}
+                      style={storyThumb}
+                    />
+                  )}
                   <span style={monoSmall}>{post.name || "anonymous"}</span>
                 </div>
               </div>
