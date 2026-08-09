@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import ReactMarkdown, { Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Rule, Annotation } from "../../components/Shared";
 import {
   StoryboardPost,
@@ -85,18 +87,28 @@ const cardMessage: React.CSSProperties = {
   fontSize: "0.92rem",
   lineHeight: 1.65,
   color: "var(--ink-soft)",
-  whiteSpace: "pre-wrap",
   wordBreak: "break-word",
 };
 
-const CLAMP_LINES = 4;
+const MAX_CLAMP_HEIGHT = 200;
 
 const messageClamped: React.CSSProperties = {
-  display: "-webkit-box",
-  WebkitBoxOrient: "vertical",
-  WebkitLineClamp: CLAMP_LINES,
+  maxHeight: MAX_CLAMP_HEIGHT,
   overflow: "hidden",
+  position: "relative",
 };
+
+const clampFade: React.CSSProperties = {
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  height: "48px",
+  pointerEvents: "none",
+  background:
+    "linear-gradient(to bottom, transparent, var(--canvas-card))",
+};
+
 const expandToggle: React.CSSProperties = {
   fontFamily: "var(--f-mono)",
   fontSize: "0.6rem",
@@ -107,6 +119,39 @@ const expandToggle: React.CSSProperties = {
   padding: "0.35rem 0 0",
   textDecoration: "underline",
   textUnderlineOffset: "2px",
+};
+
+// Composer markdown toolbar
+const mdToolbar: React.CSSProperties = {
+  display: "flex",
+  gap: "0.25rem",
+  flexWrap: "wrap",
+  marginBottom: "0.35rem",
+  padding: "0.35rem",
+  background: "var(--canvas-card)",
+  border: "1px solid var(--rule)",
+  borderRadius: "6px",
+};
+
+const mdToolBtn: React.CSSProperties = {
+  fontFamily: "var(--f-mono)",
+  fontSize: "0.68rem",
+  fontWeight: 600,
+  minWidth: "26px",
+  height: "26px",
+  padding: "0 0.4rem",
+  borderRadius: "4px",
+  border: "none",
+  background: "transparent",
+  color: "var(--ink-soft)",
+  cursor: "pointer",
+  transition: "all 0.15s",
+};
+
+const mdToolDivider: React.CSSProperties = {
+  width: "1px",
+  background: "var(--rule)",
+  margin: "0 0.15rem",
 };
 
 // Card thumbnails
@@ -365,6 +410,94 @@ function isImage(att: StoryboardAttachment): boolean {
   return att.type.startsWith("image/");
 }
 
+const mdComponents: Components = {
+  p: ({ children }) => (
+    <p style={{ marginBottom: "0.5rem" }}>{children}</p>
+  ),
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        color: "var(--accent-link)",
+        textDecoration: "underline",
+        textUnderlineOffset: "3px",
+      }}
+    >
+      {children}
+    </a>
+  ),
+  strong: ({ children }) => (
+    <strong style={{ fontWeight: 700, color: "var(--ink)" }}>
+      {children}
+    </strong>
+  ),
+  em: ({ children }) => (
+    <em style={{ fontStyle: "italic", color: "var(--ink-soft)" }}>
+      {children}
+    </em>
+  ),
+  code: ({ children }) => (
+    <code
+      style={{
+        fontFamily: "var(--f-mono)",
+        fontSize: "0.82em",
+        background: "var(--canvas-code)",
+        border: "1px solid var(--rule)",
+        borderRadius: "4px",
+        padding: "0.1em 0.35em",
+        color: "var(--tok-kw)",
+      }}
+    >
+      {children}
+    </code>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote
+      style={{
+        borderLeft: "3px solid var(--rule-dark)",
+        paddingLeft: "0.75rem",
+        fontStyle: "italic",
+        color: "var(--ink-soft)",
+        marginBottom: "0.5rem",
+      }}
+    >
+      {children}
+    </blockquote>
+  ),
+  ul: ({ children }) => (
+    <ul
+      style={{
+        paddingLeft: "1.25rem",
+        marginBottom: "0.5rem",
+        listStyleType: "disc",
+        color: "var(--ink-soft)",
+      }}
+    >
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol
+      style={{
+        paddingLeft: "1.25rem",
+        marginBottom: "0.5rem",
+        listStyleType: "decimal",
+        color: "var(--ink-soft)",
+      }}
+    >
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => (
+    <li style={{ marginBottom: "0.25rem" }}>{children}</li>
+  ),
+  hr: () => (
+    <div style={{ height: 1, background: "var(--rule)", margin: "0.75rem 0" }} />
+  ),
+};
+
 function StoryCard({ post }: { post: StoryboardPost }) {
   const [expanded, setExpanded] = useState(false);
   const meta = CATEGORY_META[post.category];
@@ -408,14 +541,17 @@ function StoryCard({ post }: { post: StoryboardPost }) {
         </div>
       )}
 
-      <p
+      <div
         style={{
           ...cardMessage,
           ...(isLong && !expanded ? messageClamped : null),
         }}
       >
-        {post.message}
-      </p>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+          {post.message}
+        </ReactMarkdown>
+        {isLong && !expanded && <div style={clampFade} />}
+      </div>
 
       {(rest.length > 0 || others.length > 0) && (
         <div style={cardThumbWrap}>
@@ -548,6 +684,42 @@ export default function StoryboardPage() {
   function removeAttachment(url: string) {
     setAttachments((prev) => prev.filter((a) => a.url !== url));
   }
+
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+
+  function applyFormat(
+    prefix: string,
+    suffix: string = prefix,
+    placeholder: string = "text",
+  ) {
+    const el = messageRef.current;
+    if (!el) return;
+    const { selectionStart, selectionEnd, value } = el;
+    const selected = value.slice(selectionStart, selectionEnd);
+    const wrapped = `${prefix}${selected || placeholder}${suffix}`;
+    const next = value.slice(0, selectionStart) + wrapped + value.slice(selectionEnd);
+
+    setMessage(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      const start = selectionStart + prefix.length;
+      const end = selected
+        ? start + selected.length
+        : start + placeholder.length;
+      el.setSelectionRange(start, end);
+    });
+  }
+
+  const toolBtnProps = {
+    type: "button" as const,
+    style: mdToolBtn,
+    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.currentTarget.style.background = "var(--canvas-code)";
+    },
+    onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.currentTarget.style.background = "transparent";
+    },
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -773,7 +945,75 @@ export default function StoryboardPage() {
 
               <div style={{ marginBottom: "1rem" }}>
                 <label style={formLabel}>message</label>
+                <div style={mdToolbar}>
+                  <button
+                    {...toolBtnProps}
+                    title="Bold"
+                    onClick={() => applyFormat("**")}
+                  >
+                    <strong>B</strong>
+                  </button>
+                  <button
+                    {...toolBtnProps}
+                    title="Italic"
+                    onClick={() => applyFormat("*")}
+                  >
+                    <em>I</em>
+                  </button>
+                  <button
+                    {...toolBtnProps}
+                    title="Strikethrough"
+                    onClick={() => applyFormat("~~")}
+                  >
+                    <s>S</s>
+                  </button>
+                  <button
+                    {...toolBtnProps}
+                    title="Inline code"
+                    onClick={() => applyFormat("`")}
+                  >
+                    {"</>"}
+                  </button>
+                  <span style={mdToolDivider} />
+                  <button
+                    {...toolBtnProps}
+                    title="Link"
+                    onClick={() => applyFormat("[", "](https://)", "link text")}
+                  >
+                    🔗
+                  </button>
+                  <button
+                    {...toolBtnProps}
+                    title="Quote"
+                    onClick={() => applyFormat("\n> ", "\n", "quote")}
+                  >
+                    ❝
+                  </button>
+                  <span style={mdToolDivider} />
+                  <button
+                    {...toolBtnProps}
+                    title="Bullet list"
+                    onClick={() => applyFormat("\n- ", "\n", "item")}
+                  >
+                    ••
+                  </button>
+                  <button
+                    {...toolBtnProps}
+                    title="Numbered list"
+                    onClick={() => applyFormat("\n1. ", "\n", "item")}
+                  >
+                    1.
+                  </button>
+                  <button
+                    {...toolBtnProps}
+                    title="Heading"
+                    onClick={() => applyFormat("## ", "\n", "heading")}
+                  >
+                    H
+                  </button>
+                </div>
                 <textarea
+                  ref={messageRef}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   maxLength={500}
@@ -783,6 +1023,9 @@ export default function StoryboardPage() {
                   placeholder="a thought, suggestion, idea, or something random…"
                   style={{ ...inputStyle, resize: "vertical" }}
                 />
+                <span style={monoSmall}>
+                  markdown supported — select text and use the toolbar above
+                </span>
               </div>
 
               {error && (
