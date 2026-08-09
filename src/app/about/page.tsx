@@ -1,6 +1,14 @@
 import { Rule, CodeBlock, Annotation } from "../../components/Shared";
 import { Section } from "../../types";
 import Contact from "./Contact";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "About Novita (郭瑩慧) — an engineer based in Jakarta writing about software engineering, AI, prompt engineering, and community events.",
+  alternates: { canonical: "https://www.novitaguok.com/about" },
+};
 
 const PROFILE_META = [
   { icon: "📍", text: "Jakarta" },

@@ -1,10 +1,55 @@
 import "./globals.css";
 import { ThemeProvider } from "../components/ThemeProvider";
 import AppLayout from "../components/AppLayout";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "Novita | Engineer",
-  description: "Portfolio and Journal",
+const SITE_URL = "https://www.novitaguok.com";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Novita | Engineer",
+    template: "%s | Novita",
+  },
+  description:
+    "Portfolio and journal of Novita (郭瑩慧) — an engineer writing about prompt engineering, software engineering, AI, and community events.",
+  keywords: [
+    "Novita",
+    "engineer",
+    "portfolio",
+    "journal",
+    "prompt engineering",
+    "software engineering",
+    "AI",
+    "blog",
+  ],
+  authors: [{ name: "Novita (郭瑩慧)" }],
+  creator: "Novita",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: "Novita",
+    title: "Novita | Engineer",
+    description:
+      "Portfolio and journal of Novita (郭瑩慧) — an engineer writing about prompt engineering, software engineering, AI, and community events.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Novita | Engineer",
+    description:
+      "Portfolio and journal of Novita (郭瑩慧) — an engineer writing about prompt engineering, software engineering, AI, and community events.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
