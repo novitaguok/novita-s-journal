@@ -4,6 +4,7 @@ import {
   StoryboardCategory,
   StoryboardAttachment,
 } from "@/src/domain/storyboard/types";
+import { isSessionValid } from "@/src/app/api/storyboard/auth/route";
 
 export const runtime = "nodejs";
 
@@ -160,14 +161,11 @@ export async function POST(req: NextRequest) {
 }
 
 function isAuthorized(req: NextRequest): boolean {
-  const secret = process.env.NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN;
-  if (!secret) return false;
-  const authHeader = req.headers.get("authorization");
-  return authHeader === `Bearer ${secret}`;
+  return isSessionValid(req);
 }
 
-// Admin-only: toggle the pinned state of a post. Uses the storyboard admin
-// token (NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN) sent as a Bearer header.
+// Admin-only: toggle the pinned state of a post. Requires a valid admin
+// session (HttpOnly cookie set via POST /api/storyboard/auth).
 export async function PATCH(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json(
