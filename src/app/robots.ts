@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 
 const SITE_URL = "https://www.novitaguok.com";
 
-export default function robots(): MetadataRoute.Robots {
+export default function RobotsTxt(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",

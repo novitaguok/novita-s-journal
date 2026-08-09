@@ -31,7 +31,9 @@ export async function generateMetadata({
       title: article.title,
       description: article.excerpt,
       publishedTime: article.publishedAt,
-      modifiedTime: article.updatedAt,
+      ...(article.updatedAt !== article.publishedAt && {
+        modifiedTime: article.updatedAt,
+      }),
       authors: ["Novita (郭瑩慧)"],
       siteName: "Novita",
     },

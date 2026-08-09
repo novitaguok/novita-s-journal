@@ -3,6 +3,8 @@ import { GetArticlesUseCase } from "@/src/use-cases/articles/GetArticlesUseCase"
 
 const SITE_URL = "https://www.novitaguok.com";
 
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "weekly", priority: 1 },
@@ -12,18 +14,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/guestbook`, changeFrequency: "daily", priority: 0.4 },
   ];
 
-  const useCase = new GetArticlesUseCase();
-  let articleRoutes: MetadataRoute.Sitemap = [];
   try {
+    const useCase = new GetArticlesUseCase();
     const slugs = await useCase.executeGetSlugs();
-    articleRoutes = slugs.map((slug) => ({
+    const articleRoutes: MetadataRoute.Sitemap = slugs.map((slug) => ({
       url: `${SITE_URL}/articles/${slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     }));
+    return [...staticRoutes, ...articleRoutes];
   } catch {
     // If listing articles fails (e.g. GitHub API hiccup), still ship static routes.
+    return staticRoutes;
   }
-
-  return [...staticRoutes, ...articleRoutes];
 }
