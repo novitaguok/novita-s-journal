@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/src/lib/supabase/server";
-import { StoryboardCategory } from "@/src/domain/storyboard/types";
+import {
+  StoryboardCategory,
+  StoryboardAttachment,
+} from "@/src/domain/storyboard/types";
 
 export const runtime = "nodejs";
 
@@ -13,6 +16,18 @@ const CATEGORIES: StoryboardCategory[] = [
 
 const MAX_NAME_LENGTH = 40;
 const MAX_MESSAGE_LENGTH = 500;
+const MAX_ATTACHMENTS = 4;
+
+function isAttachment(value: unknown): value is StoryboardAttachment {
+  if (typeof value !== "object" || value === null) return false;
+  const a = value as Record<string, unknown>;
+  return (
+    typeof a.url === "string" &&
+    a.url.startsWith("http") &&
+    typeof a.name === "string" &&
+    typeof a.type === "string"
+  );
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -26,7 +41,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("storyboard")
-      .select("id, name, category, message, created_at, is_approved")
+      .select("id, name, category, message, attachment_urls, created_at, is_approved")
       .eq("is_approved", true)
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -39,6 +54,9 @@ export async function GET(req: NextRequest) {
         name: row.name,
         category: row.category,
         message: row.message,
+        attachmentUrls: (row.attachment_urls ?? [])
+          .filter(isAttachment)
+          .slice(0, MAX_ATTACHMENTS),
         createdAt: row.created_at,
         isApproved: row.is_approved,
       })),
@@ -53,7 +71,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { name?: string; category?: string; message?: string };
+  let body: {
+    name?: string;
+    category?: string;
+    message?: string;
+    attachmentUrls?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -87,6 +110,10 @@ export async function POST(req: NextRequest) {
 
   const name = (body.name ?? "").trim().slice(0, MAX_NAME_LENGTH) || null;
 
+  const attachmentUrls = Array.isArray(body.attachmentUrls)
+    ? body.attachmentUrls.filter(isAttachment).slice(0, MAX_ATTACHMENTS)
+    : [];
+
   try {
     const supabase = createSupabaseServerClient();
 
@@ -96,9 +123,10 @@ export async function POST(req: NextRequest) {
         name,
         category,
         message,
+        attachment_urls: attachmentUrls,
         is_approved: true,
       })
-      .select("id, name, category, message, created_at, is_approved")
+      .select("id, name, category, message, attachment_urls, created_at, is_approved")
       .single();
 
     if (error) throw error;
@@ -110,6 +138,9 @@ export async function POST(req: NextRequest) {
           name: data.name,
           category: data.category,
           message: data.message,
+          attachmentUrls: (data.attachment_urls ?? [])
+            .filter(isAttachment)
+            .slice(0, MAX_ATTACHMENTS),
           createdAt: data.created_at,
           isApproved: data.is_approved,
         },

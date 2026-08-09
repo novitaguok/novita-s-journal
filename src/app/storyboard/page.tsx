@@ -5,6 +5,7 @@ import { Rule, Annotation } from "../../components/Shared";
 import {
   StoryboardPost,
   StoryboardCategory,
+  StoryboardAttachment,
 } from "@/src/domain/storyboard/types";
 
 const pageWrapper: React.CSSProperties = {
@@ -106,6 +107,102 @@ const expandToggle: React.CSSProperties = {
   padding: "0.35rem 0 0",
   textDecoration: "underline",
   textUnderlineOffset: "2px",
+};
+
+// Card thumbnails
+const cardThumbWrap: React.CSSProperties = {
+  marginBottom: "0.6rem",
+  display: "flex",
+  gap: "0.4rem",
+  flexWrap: "wrap",
+};
+
+const cardThumb: React.CSSProperties = {
+  width: "100%",
+  maxHeight: "180px",
+  objectFit: "cover",
+  borderRadius: "6px",
+  border: "1px solid var(--rule)",
+  display: "block",
+};
+
+const cardThumbSmall: React.CSSProperties = {
+  width: "56px",
+  height: "56px",
+  objectFit: "cover",
+  borderRadius: "6px",
+  border: "1px solid var(--rule)",
+  display: "block",
+  cursor: "pointer",
+};
+
+const attachmentChip: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "0.35rem",
+  fontFamily: "var(--f-mono)",
+  fontSize: "0.6rem",
+  color: "var(--accent-link)",
+  border: "1px solid var(--rule)",
+  borderRadius: "5px",
+  padding: "0.2rem 0.5rem",
+  textDecoration: "none",
+  maxWidth: "100%",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+// Composer upload
+const uploadArea: React.CSSProperties = {
+  display: "block",
+  width: "100%",
+  border: "1px dashed var(--rule)",
+  borderRadius: "6px",
+  padding: "0.75rem",
+  textAlign: "center",
+  cursor: "pointer",
+  background: "var(--canvas-code)",
+  transition: "all 0.15s",
+};
+
+const uploadPreviewRow: React.CSSProperties = {
+  display: "flex",
+  gap: "0.5rem",
+  flexWrap: "wrap",
+  marginTop: "0.6rem",
+};
+
+const uploadPreview: React.CSSProperties = {
+  position: "relative",
+  width: "64px",
+  height: "64px",
+};
+
+const uploadPreviewImg: React.CSSProperties = {
+  width: "64px",
+  height: "64px",
+  objectFit: "cover",
+  borderRadius: "6px",
+  border: "1px solid var(--rule)",
+  display: "block",
+};
+
+const uploadRemoveBtn: React.CSSProperties = {
+  position: "absolute",
+  top: "-6px",
+  right: "-6px",
+  width: "18px",
+  height: "18px",
+  borderRadius: "50%",
+  background: "var(--ink)",
+  color: "var(--canvas)",
+  border: "none",
+  cursor: "pointer",
+  fontSize: "0.6rem",
+  lineHeight: "18px",
+  textAlign: "center",
+  padding: 0,
 };
 
 const primaryButton: React.CSSProperties = {
@@ -264,10 +361,18 @@ async function fetchPosts(): Promise<StoryboardPost[]> {
   return json.data ?? [];
 }
 
+function isImage(att: StoryboardAttachment): boolean {
+  return att.type.startsWith("image/");
+}
+
 function StoryCard({ post }: { post: StoryboardPost }) {
   const [expanded, setExpanded] = useState(false);
   const meta = CATEGORY_META[post.category];
   const isLong = post.message.length > 220;
+
+  const images = post.attachmentUrls.filter(isImage);
+  const others = post.attachmentUrls.filter((a) => !isImage(a));
+  const [hero, ...rest] = images;
 
   return (
     <div
@@ -288,6 +393,21 @@ function StoryCard({ post }: { post: StoryboardPost }) {
           {formatRelative(post.createdAt)}
         </span>
       </div>
+
+      {hero && (
+        <div style={cardThumbWrap}>
+          <a
+            href={hero.url}
+            target="_blank"
+            rel="noreferrer"
+            style={{ display: "block", width: "100%" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={hero.url} alt={hero.name} style={cardThumb} />
+          </a>
+        </div>
+      )}
+
       <p
         style={{
           ...cardMessage,
@@ -296,6 +416,39 @@ function StoryCard({ post }: { post: StoryboardPost }) {
       >
         {post.message}
       </p>
+
+      {(rest.length > 0 || others.length > 0) && (
+        <div style={cardThumbWrap}>
+          {rest.map((att) => (
+            <a
+              key={att.url}
+              href={att.url}
+              target="_blank"
+              rel="noreferrer"
+              title={att.name}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={att.url}
+                alt={att.name}
+                style={cardThumbSmall}
+              />
+            </a>
+          ))}
+          {others.map((att) => (
+            <a
+              key={att.url}
+              href={att.url}
+              target="_blank"
+              rel="noreferrer"
+              style={attachmentChip}
+            >
+              📎 {att.name}
+            </a>
+          ))}
+        </div>
+      )}
+
       {isLong && (
         <button onClick={() => setExpanded((v) => !v)} style={expandToggle}>
           {expanded ? "show less ↑" : "read more ↓"}
@@ -313,6 +466,8 @@ export default function StoryboardPage() {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<StoryboardCategory>("thought");
   const [message, setMessage] = useState("");
+  const [attachments, setAttachments] = useState<StoryboardAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justPosted, setJustPosted] = useState(false);
@@ -348,7 +503,51 @@ export default function StoryboardPage() {
     setModalOpen(false);
     setError(null);
     setMessage("");
+    setAttachments([]);
   }, [submitting]);
+
+  const MAX_ATTACHMENTS = 4;
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length === 0) return;
+
+    if (attachments.length + files.length > MAX_ATTACHMENTS) {
+      setError(`You can attach up to ${MAX_ATTACHMENTS} files`);
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const uploaded: StoryboardAttachment[] = [];
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/storyboard/upload", {
+          method: "POST",
+          body: fd,
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          setError(json.error ?? "Upload failed");
+          return;
+        }
+        uploaded.push(json.data);
+      }
+      setAttachments((prev) => [...prev, ...uploaded]);
+    } catch {
+      setError("Could not upload the file. Try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function removeAttachment(url: string) {
+    setAttachments((prev) => prev.filter((a) => a.url !== url));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -361,7 +560,7 @@ export default function StoryboardPage() {
       const res = await fetch("/api/storyboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, category, message }),
+        body: JSON.stringify({ name, category, message, attachmentUrls: attachments }),
       });
       const json = await res.json();
 
@@ -374,6 +573,7 @@ export default function StoryboardPage() {
       setMessage("");
       setName("");
       setCategory("thought");
+      setAttachments([]);
       setModalOpen(false);
       setJustPosted(true);
       setTimeout(() => setJustPosted(false), 3000);
@@ -436,9 +636,6 @@ export default function StoryboardPage() {
               text="be the first to pin something up!"
               style={{ justifyContent: "center", marginBottom: "1rem" }}
             />
-            <button onClick={openModal} style={primaryButton}>
-              📌 pin something
-            </button>
           </div>
         ) : (
           <div style={board}>
@@ -527,6 +724,54 @@ export default function StoryboardPage() {
               </div>
 
               <div style={{ marginBottom: "1rem" }}>
+                <label style={formLabel}>attachments (optional)</label>
+                <label
+                  style={{
+                    ...uploadArea,
+                    opacity: uploading ? 0.6 : 1,
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleUpload}
+                    disabled={uploading || attachments.length >= MAX_ATTACHMENTS}
+                    style={{ display: "none" }}
+                  />
+                  <span style={monoSmall}>
+                    {uploading
+                      ? "uploading…"
+                      : attachments.length >= MAX_ATTACHMENTS
+                        ? `max ${MAX_ATTACHMENTS} images`
+                        : "📎 attach images (up to 4)"}
+                  </span>
+                </label>
+                {attachments.length > 0 && (
+                  <div style={uploadPreviewRow}>
+                    {attachments.map((att) => (
+                      <div key={att.url} style={uploadPreview}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={att.url}
+                          alt={att.name}
+                          style={uploadPreviewImg}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(att.url)}
+                          aria-label={`Remove ${att.name}`}
+                          style={uploadRemoveBtn}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginBottom: "1rem" }}>
                 <label style={formLabel}>message</label>
                 <textarea
                   value={message}
@@ -534,6 +779,7 @@ export default function StoryboardPage() {
                   maxLength={500}
                   rows={4}
                   autoFocus
+                  className="story-message"
                   placeholder="a thought, suggestion, idea, or something random…"
                   style={{ ...inputStyle, resize: "vertical" }}
                 />
