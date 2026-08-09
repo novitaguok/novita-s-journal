@@ -121,6 +121,19 @@ const expandToggle: React.CSSProperties = {
   textUnderlineOffset: "2px",
 };
 
+const pinButton: React.CSSProperties = {
+  fontFamily: "var(--f-mono)",
+  fontSize: "0.58rem",
+  fontWeight: 600,
+  background: "none",
+  border: "1px solid var(--rule)",
+  borderRadius: "5px",
+  padding: "0.15rem 0.5rem",
+  cursor: "pointer",
+  color: "var(--ink-faint)",
+  transition: "all 0.15s",
+};
+
 // Composer markdown toolbar
 const mdToolbar: React.CSSProperties = {
   display: "flex",
@@ -498,7 +511,17 @@ const mdComponents: Components = {
   ),
 };
 
-function StoryCard({ post }: { post: StoryboardPost }) {
+function StoryCard({
+  post,
+  isAdmin,
+  onTogglePin,
+  pinning,
+}: {
+  post: StoryboardPost;
+  isAdmin: boolean;
+  onTogglePin: (post: StoryboardPost) => void;
+  pinning: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
   const meta = CATEGORY_META[post.category];
   const isLong = post.message.length > 220;
@@ -522,6 +545,22 @@ function StoryCard({ post }: { post: StoryboardPost }) {
           {meta.icon} {meta.label}
         </span>
         <span style={monoSmall}>{post.name || "anonymous"}</span>
+        {isAdmin && (
+          <button
+            onClick={() => onTogglePin(post)}
+            disabled={pinning}
+            title={post.isPinned ? "Unpin" : "Pin to top"}
+            style={{
+              ...pinButton,
+              ...(post.isPinned
+                ? { color: "var(--accent-link)", borderColor: "var(--rule-dark)" }
+                : null),
+              opacity: pinning ? 0.5 : 1,
+            }}
+          >
+            {post.isPinned ? "📌 pinned" : "📌 pin"}
+          </button>
+        )}
         <span style={{ ...monoSmall, marginLeft: "auto" }}>
           {formatRelative(post.createdAt)}
         </span>
@@ -597,6 +636,9 @@ function StoryCard({ post }: { post: StoryboardPost }) {
 export default function StoryboardPage() {
   const [posts, setPosts] = useState<StoryboardPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [pinningId, setPinningId] = useState<string | null>(null);
+
+  const isAdmin = Boolean(process.env.NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState("");
@@ -721,6 +763,36 @@ export default function StoryboardPage() {
     },
   };
 
+  async function handleTogglePin(post: StoryboardPost) {
+    if (!isAdmin || pinningId) return;
+    setPinningId(post.id);
+
+    try {
+      const res = await fetch("/api/storyboard", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STORYBOARD_ADMIN_TOKEN}`,
+        },
+        body: JSON.stringify({ id: post.id, pinned: !post.isPinned }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.error ?? "Could not update pin");
+        return;
+      }
+
+      setPosts((prev) =>
+        prev.map((p) => (p.id === post.id ? json.data : p)),
+      );
+    } catch {
+      setError("Could not reach the server. Try again.");
+    } finally {
+      setPinningId(null);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!message.trim() || submitting) return;
@@ -770,7 +842,7 @@ export default function StoryboardPage() {
 
         <div style={headerBottom}>
           <span style={monoSmall}>
-            {loading ? "loading…" : `${posts.length} pinned`}
+            {loading ? "loading…" : `${posts.length} posts`}
           </span>
           <div
             style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
@@ -810,11 +882,55 @@ export default function StoryboardPage() {
             />
           </div>
         ) : (
-          <div style={board}>
-            {posts.map((post) => (
-              <StoryCard key={post.id} post={post} />
-            ))}
-          </div>
+          <>
+            {posts.some((p) => p.isPinned) && (
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                  <span style={{ ...monoSmall, fontWeight: 700, color: "var(--accent-link)" }}>
+                    📌 pinned
+                  </span>
+                  <div style={{ flex: 1, height: "1px", background: "var(--rule)" }} />
+                </div>
+                <div style={board}>
+                  {posts
+                    .filter((p) => p.isPinned)
+                    .map((post) => (
+                      <StoryCard
+                        key={post.id}
+                        post={post}
+                        isAdmin={isAdmin}
+                        onTogglePin={handleTogglePin}
+                        pinning={pinningId === post.id}
+                      />
+                    ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              {posts.some((p) => p.isPinned) && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                  <span style={{ ...monoSmall, fontWeight: 700, color: "var(--ink-faint)" }}>
+                    regular
+                  </span>
+                  <div style={{ flex: 1, height: "1px", background: "var(--rule)" }} />
+                </div>
+              )}
+              <div style={board}>
+                {posts
+                  .filter((p) => !p.isPinned)
+                  .map((post) => (
+                    <StoryCard
+                      key={post.id}
+                      post={post}
+                      isAdmin={isAdmin}
+                      onTogglePin={handleTogglePin}
+                      pinning={pinningId === post.id}
+                    />
+                  ))}
+              </div>
+            </div>
+          </>
         )}
       </div>
 

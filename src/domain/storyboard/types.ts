@@ -18,4 +18,5 @@ export interface StoryboardPost {
   attachmentUrls: StoryboardAttachment[];
   createdAt: string;
   isApproved: boolean;
+  isPinned: boolean;
 }
