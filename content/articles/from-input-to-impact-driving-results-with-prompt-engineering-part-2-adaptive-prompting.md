@@ -47,7 +47,7 @@ How to implement this pattern?
 
 **Example Prompt Formula**
 
-_"Whenever I ask a question about_ **\*\[Topic\]\*\***, suggest\* **_3 better, more specific versions_** _of my question that would yield a more thorough and accurate answer. Then, ask me which version I would like you to answer."_
+_"Whenever I ask a question about_ **[Topic]**, suggest **_3 better, more specific versions_** _of my question that would yield a more thorough and accurate answer. Then, ask me which version I would like you to answer."_
 
 ## Pattern: Alternative Approaches
 
@@ -59,7 +59,7 @@ The core idea of this pattern is to prompt the AI model to generate multiple pat
 
 **Example Prompt Formula**
 
-_"I want to achieve_ **\*\[Goal/Task\]\*\***. Here is my initial idea:\* **\*'\[Insert your approach\]'\*\***. Before implementing it, please list\* **_3 alternative ways_** _to accomplish the same goal, and compare the pros and cons of each method against my original idea."_
+_"I want to achieve_ **[Goal/Task]**. Here is my initial idea: **'[Insert your approach]'**. Before implementing it, please list **_3 alternative ways_** _to accomplish the same goal, and compare the pros and cons of each method against my original idea."_
 
 ## Pattern: Cognitive Verifier
 
@@ -71,7 +71,7 @@ Works by having the AI model break down a primary question into smaller, sub-que
 
 **Example Prompt Formula**
 
-_"When I ask you_ **\*'\[Insert your main question\]'\*\***, follow these steps before answering:\*
+_"When I ask you_ **'[Insert your main question]'**, follow these steps before answering:
 
 1.  _Break my query down into 3–4 foundational sub-questions required to answer it accurately._
 
@@ -93,4 +93,4 @@ The **Flipped Interaction Pattern** solves this problem by turning the tradition
 
 **Example Prompt Formula**
 
-_"I want you to_ **\*\[Define Goal/Task, e.g., create unit tests for the 'Add Book' feature in Kotlin\]\*\***. To do this accurately,\* **_ask me questions_** _about my project requirements, data structures, and edge cases._ **_Ask only one question at a time._** _Keep asking questions until you have all the information required to write the complete code, then provide the solution."_
+_"I want you to_ **[Define Goal/Task, e.g., create unit tests for the 'Add Book' feature in Kotlin]**. To do this accurately, **_ask me questions_** _about my project requirements, data structures, and edge cases._ **_Ask only one question at a time._** _Keep asking questions until you have all the information required to write the complete code, then provide the solution."_
