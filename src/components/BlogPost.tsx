@@ -139,6 +139,7 @@ export function BlogPost({
           fontSize: "1.05rem",
           lineHeight: "1.85",
           color: "var(--ink-soft)",
+          whiteSpace: "pre-wrap",
         }}
       >
         {children}
