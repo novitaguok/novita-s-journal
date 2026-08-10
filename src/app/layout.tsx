@@ -1,7 +1,11 @@
 import "./globals.css";
 import { ThemeProvider } from "../components/ThemeProvider";
 import AppLayout from "../components/AppLayout";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const SITE_URL = "https://www.novitaguok.com";
 
@@ -69,6 +73,8 @@ export default function RootLayout({
         <ThemeProvider>
           <AppLayout>{children}</AppLayout>
         </ThemeProvider>
+        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+        <Analytics />
       </body>
     </html>
   );
