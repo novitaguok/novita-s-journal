@@ -10,6 +10,4 @@ export interface ArticlesRepository {
   getArticle(slug: string): Promise<Article | null>;
 
   getArticleSlugs(): Promise<string[]>;
-
-  incrementViews(slug: string): Promise<void>;
 }

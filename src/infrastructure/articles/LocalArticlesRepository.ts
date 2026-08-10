@@ -35,7 +35,6 @@ export class LocalArticlesRepository implements ArticlesRepository {
         excerpt: data.excerpt || data.description || '',
         body: content,
         readTime: data.readTime || this.calculateReadTime(content),
-        views: 0,
         isPublished: data.isPublished !== false,
         publishedAt: data.date || data.datePublished || new Date().toISOString(),
         createdAt: data.date || data.datePublished || new Date().toISOString(),
@@ -77,7 +76,6 @@ export class LocalArticlesRepository implements ArticlesRepository {
           tags: mappedTags,
           excerpt: data.excerpt || data.description || '',
           readTime: data.readTime || this.calculateReadTime(content),
-          views: 0,
           isPublished: true,
           publishedAt: data.date || data.datePublished || new Date().toISOString(),
           createdAt: data.date || data.datePublished || new Date().toISOString(),
@@ -127,9 +125,5 @@ export class LocalArticlesRepository implements ArticlesRepository {
     } catch (err) {
       return [];
     }
-  }
-
-  async incrementViews(slug: string): Promise<void> {
-    // Local storage doesn't track views. No-op.
   }
 }

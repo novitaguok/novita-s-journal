@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TAG_COLORS } from "../lib/data";
 import { Project } from "@/src/domain/projects/types";
 import { ArticleListItem } from "@/src/domain/articles/types";
 import { CodeBlock, WashBlob, Annotation, Rule, TagBadge } from "../components/Shared";
-import { Section } from "../types";
 import { GitHubCalendar } from "react-github-calendar";
 import MiniRepoCard from "@/src/features/projects/components/MiniRepoCard";
 
@@ -259,21 +257,7 @@ function heroButtonStyle(
   }
 }
 
-function tagBadge(bg: string, text: string): React.CSSProperties {
-  return {
-    fontFamily: "var(--f-mono)",
-    fontSize: "0.6rem",
-    fontWeight: 600,
-    padding: "0.15rem 0.4rem",
-    borderRadius: "4px",
-    background: bg,
-    color: text,
-    flexShrink: 0,
-  };
-}
-
 import Link from "next/link";
-
 export default function Home() {
   const [lineIdx, setLineIdx] = useState(0);
   const [mounted, setMounted] = useState(false);

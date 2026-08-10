@@ -25,10 +25,8 @@ export default function MiniRepoCard({ project: p }: { project: Project }) {
       }}
     >
       <CodeBlock
-        code={typeof p.snippet === "object" && p.snippet ? p.snippet.code : p.snippet || ""}
-        lang={typeof p.snippet === "object" && p.snippet && p.snippet.language ? p.snippet.language : p.lang.toLowerCase()}
-        blockType={typeof p.snippet === "object" && p.snippet ? p.snippet.blockType : p.blockType}
-        filename={typeof p.snippet === "object" && p.snippet ? p.snippet.filename : undefined}
+        code={p.snippet || ""}
+        lang={p.lang.toLowerCase()}
         compact
         style={{
           borderRadius: 0,

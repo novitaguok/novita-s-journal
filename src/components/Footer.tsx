@@ -1,5 +1,4 @@
 "use client";
-import { Section } from "../types";
 
 export default function Footer() {
   return (

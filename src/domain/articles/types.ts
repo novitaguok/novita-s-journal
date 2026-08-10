@@ -7,7 +7,6 @@ export interface Article {
   excerpt: string;
   body: string;
   readTime: number;
-  views: number;
   isPublished: boolean;
   publishedAt: string;
   createdAt: string;

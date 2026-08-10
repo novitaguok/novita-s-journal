@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GetArticlesUseCase } from "@/src/use-cases/articles/GetArticlesUseCase";
+import { createArticlesRepositories } from "@/src/infrastructure/articles/repositories";
+import { errorMessage } from "@/src/lib/errors";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -10,12 +12,13 @@ export async function GET(req: NextRequest) {
     : undefined;
 
   try {
-    const useCase = new GetArticlesUseCase();
+    const { primary, local, github } = createArticlesRepositories();
+    const useCase = new GetArticlesUseCase(primary, local, github);
     const articleList = await useCase.executeList({ tag, search, limit });
     return NextResponse.json({ data: articleList, error: null });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
-      { data: null, error: err.message },
+      { data: null, error: errorMessage(err) },
       { status: 500 },
     );
   }
