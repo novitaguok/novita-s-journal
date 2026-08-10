@@ -110,7 +110,7 @@ export function BlogPost({
       return (
         <h3
           id={id}
-          className="scroll-mt-24 mt-6 mb-3 font-display text-xl font-bold text-ink"
+          className="scroll-mt-24 mt-6 mb-5 font-display text-xl font-bold text-ink"
           style={{
             fontFamily: "var(--f-display)",
             color: "var(--ink)",
