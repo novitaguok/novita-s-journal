@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React from "react";
 import Link from "next/link";
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -14,38 +14,9 @@ import { ImageZoom } from "./ImageZoom";
 import ArticleLayoutWrapper from "./ArticleLayoutWrapper";
 import GiscusClient from "./GiscusClient";
 import { ArticleListItem } from "@/src/domain/articles/types";
-import { useTheme } from "./ThemeProvider";
-
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
-}
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/<[^>]*>/g, "")
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function extractHeadings(markdown: string): TocItem[] {
-  const headingRegex = /^(#{2,3})\s+(.+)$/gm;
-  const items: TocItem[] = [];
-  let match;
-  while ((match = headingRegex.exec(markdown)) !== null) {
-    const level = match[1].length;
-    const rawText = match[2].trim();
-    const cleanText = rawText.replace(/[*_~`]/g, "");
-    const id = slugify(cleanText);
-    if (id && cleanText) {
-      items.push({ id, text: cleanText, level });
-    }
-  }
-  return items;
-}
+import { slugify, headingText } from "@/src/lib/markdown";
+import { useTableOfContents } from "./useTableOfContents";
+import { TableOfContents } from "./TableOfContents";
 
 export function BlogPost({
   article,
@@ -56,40 +27,13 @@ export function BlogPost({
   commentsComponent?: React.ReactNode;
   readNextArticles?: ArticleListItem[];
 }) {
-  const { isWide } = useTheme();
-  const [activeId, setActiveId] = useState<string>("");
-
-  const tocItems = useMemo(
-    () => extractHeadings(article.body),
-    [article.body]
+  const { entries: tocEntries, activeId, setActiveId } = useTableOfContents(
+    article.body
   );
-
-  useEffect(() => {
-    if (tocItems.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: "-80px 0px -60% 0px" }
-    );
-
-    tocItems.forEach((item) => {
-      const el = document.getElementById(item.id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [tocItems]);
 
   const mdComponents: Components = {
     h2: ({ children }) => {
-      const text = React.Children.toArray(children).join("");
-      const id = slugify(text);
+      const id = slugify(headingText(children));
       return (
         <h2
           id={id}
@@ -105,8 +49,7 @@ export function BlogPost({
       );
     },
     h3: ({ children }) => {
-      const text = React.Children.toArray(children).join("");
-      const id = slugify(text);
+      const id = slugify(headingText(children));
       return (
         <h3
           id={id}
@@ -428,73 +371,17 @@ export function BlogPost({
         </div>
 
         {/* Floating Table of Contents Sidebar (Outside article content area) */}
-        {tocItems.length > 0 && (
-          <aside
-            style={{
-              position: "fixed",
-              top: "140px",
-              left: isWide ? "calc(50% + 620px)" : "calc(50% + 430px)",
-              width: "220px",
-              maxHeight: "calc(100vh - 180px)",
-              overflowY: "auto",
-              background: "var(--canvas-card)",
-              border: "1px solid var(--rule)",
-              borderRadius: "8px",
-              padding: "0.85rem 1rem",
-              zIndex: 10,
-              transition: "left 0.3s ease",
+        {tocEntries.length > 0 && (
+          <TableOfContents
+            entries={tocEntries}
+            activeId={activeId}
+            onNavigate={(targetId) => {
+              document.getElementById(targetId)?.scrollIntoView({
+                behavior: "smooth",
+              });
+              setActiveId(targetId);
             }}
-            className="hidden xl:block"
-          >
-            <div
-              style={{
-                fontFamily: "var(--f-mono)",
-                fontSize: "0.62rem",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--ink-faint)",
-                marginBottom: "0.75rem",
-              }}
-            >
-              Table of Contents
-            </div>
-            <nav style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              {tocItems.map((item) => {
-                const isActive = activeId === item.id;
-                return (
-                  <a
-                    key={item.id}
-                    href={`#${item.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const el = document.getElementById(item.id);
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth" });
-                        setActiveId(item.id);
-                      }
-                    }}
-                    style={{
-                      fontFamily: "var(--f-mono)",
-                      fontSize: "0.65rem",
-                      lineHeight: "1.4",
-                      textDecoration: "none",
-                      color: isActive ? "var(--accent-link)" : "var(--ink-soft)",
-                      fontWeight: isActive ? 600 : 400,
-                      borderLeft: isActive ? "2px solid var(--accent-link)" : "2px solid transparent",
-                      marginLeft: isActive ? "-0.5rem" : "0",
-                      paddingLeft: isActive
-                        ? item.level === 3 ? "0.75rem" : "0.35rem"
-                        : item.level === 3 ? "0.75rem" : "0",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    {item.text}
-                  </a>
-                );
-              })}
-            </nav>
-          </aside>
+          />
         )}
 
         <Rule style={{ margin: "3rem 0 2rem" }} />
