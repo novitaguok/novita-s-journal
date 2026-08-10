@@ -61,7 +61,6 @@ export class GitHubArticlesRepository implements ArticlesRepository {
       excerpt: data.excerpt ?? data.description ?? "",
       body: content,
       readTime: data.readTime ?? this.calculateReadTime(content),
-      views: 0,
       isPublished: data.isPublished !== false,
       publishedAt: data.date ?? data.datePublished ?? new Date().toISOString(),
       createdAt: data.date ?? data.datePublished ?? new Date().toISOString(),
@@ -116,7 +115,6 @@ export class GitHubArticlesRepository implements ArticlesRepository {
           tags: parsed.tags,
           excerpt: parsed.excerpt,
           readTime: parsed.readTime,
-          views: parsed.views,
           isPublished: parsed.isPublished,
           publishedAt: parsed.publishedAt,
           createdAt: parsed.createdAt,
@@ -181,9 +179,5 @@ export class GitHubArticlesRepository implements ArticlesRepository {
     return entries
       .filter((e) => e.type === "file" && e.name.endsWith(".md"))
       .map((e) => e.name.replace(/\.md$/, ""));
-  }
-
-  async incrementViews(): Promise<void> {
-    // GitHub raw content does not track views. No-op.
   }
 }

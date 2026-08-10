@@ -1,5 +1,3 @@
-import { Project } from "../domain/projects/types";
-
 export const CUSTOM_SNIPPETS: Record<string, string> = {
   "novitaguok/BudgetIN": `Widget build(BuildContext context) {\n  return Scaffold(\n    appBar: AppBar(title: Text('BudgetIN')),\n    body: Center(child: Text('Invest your money')),\n  );\n}`,
   "novitaguok/Android-Face-Recognition": `Mat rgba = new Mat();\nUtils.bitmapToMat(bitmap, rgba);\nImgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);\nfaceDetector.detectMultiScale(gray, faces);`,

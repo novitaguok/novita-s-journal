@@ -9,7 +9,6 @@ export interface CodeBlockProps {
   filename?: string;
   style?: React.CSSProperties;
   compact?: boolean;
-  showLineNumbers?: boolean;
 }
 
 export function CodeBlock({
@@ -19,7 +18,6 @@ export function CodeBlock({
   filename,
   style = {},
   compact = false,
-  showLineNumbers = true,
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
@@ -238,25 +236,23 @@ export function CodeBlock({
           const isPrompt = isTerminalMode && raw.trim().startsWith("$");
           return (
             <div key={li} style={{ display: "flex", whiteSpace: "pre" }}>
-              {showLineNumbers && (
-                <span
-                  style={{
-                    color: isPrompt ? "#34d399" : "var(--ink-faint)",
-                    minWidth: "1.5rem",
-                    marginRight: "0.75rem",
-                    opacity: isPrompt ? 0.9 : 0.35,
-                    userSelect: "none",
-                    WebkitUserSelect: "none",
-                    MozUserSelect: "none",
-                    msUserSelect: "none",
-                    fontSize: "0.6rem",
-                    paddingTop: "1px",
-                    fontWeight: isPrompt ? 700 : 400,
-                  }}
-                >
-                  {isTerminalMode ? (isPrompt ? "$" : ">") : li + 1}
-                </span>
-              )}
+              <span
+                style={{
+                  color: isPrompt ? "#34d399" : "var(--ink-faint)",
+                  minWidth: "1.5rem",
+                  marginRight: "0.75rem",
+                  opacity: isPrompt ? 0.9 : 0.35,
+                  userSelect: "none",
+                  WebkitUserSelect: "none",
+                  MozUserSelect: "none",
+                  msUserSelect: "none",
+                  fontSize: "0.6rem",
+                  paddingTop: "1px",
+                  fontWeight: isPrompt ? 700 : 400,
+                }}
+              >
+                {isTerminalMode ? (isPrompt ? "$" : ">") : li + 1}
+              </span>
               <span>
                 {tokens.map((tok, ti) => (
                   <span
@@ -275,4 +271,3 @@ export function CodeBlock({
   );
 }
 
-export default CodeBlock;

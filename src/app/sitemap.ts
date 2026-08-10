@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { GetArticlesUseCase } from "@/src/use-cases/articles/GetArticlesUseCase";
+import { createArticlesRepositories } from "@/src/infrastructure/articles/repositories";
 
 const SITE_URL = "https://www.novitaguok.com";
 
@@ -15,7 +16,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const useCase = new GetArticlesUseCase();
+    const { primary, local, github } = createArticlesRepositories();
+    const useCase = new GetArticlesUseCase(primary, local, github);
     const slugs = await useCase.executeGetSlugs();
     const articleRoutes: MetadataRoute.Sitemap = slugs.map((slug) => ({
       url: `${SITE_URL}/articles/${slug}`,

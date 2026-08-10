@@ -1,5 +1,4 @@
 import { Rule, CodeBlock, Annotation } from "../../components/Shared";
-import { Section } from "../../types";
 import Contact from "./Contact";
 import type { Metadata } from "next";
 

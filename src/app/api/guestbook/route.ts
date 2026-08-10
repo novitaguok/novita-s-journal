@@ -1,81 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/src/lib/supabase/server";
-import {
-  GuestbookCategory,
-  GuestbookAttachment,
-  GuestbookPost,
-} from "@/src/domain/guestbook/types";
-import { isSessionValid } from "@/src/app/api/guestbook/auth/route";
+import { isSessionValid } from "@/src/lib/guestbook/session";
+import { GuestbookUseCase } from "@/src/use-cases/guestbook/GuestbookUseCase";
+import { SupabaseGuestbookRepository } from "@/src/infrastructure/guestbook/SupabaseGuestbookRepository";
+import { errorMessage } from "@/src/lib/errors";
 
 export const runtime = "nodejs";
 
-const CATEGORIES: GuestbookCategory[] = [
-  "thought",
-  "suggestion",
-  "idea",
-  "random",
-];
-
-const MAX_NAME_LENGTH = 40;
-const MAX_MESSAGE_LENGTH = 500;
-const MAX_ATTACHMENTS = 4;
-
-function isAttachment(value: unknown): value is GuestbookAttachment {
-  if (typeof value !== "object" || value === null) return false;
-  const a = value as Record<string, unknown>;
-  return (
-    typeof a.url === "string" &&
-    a.url.startsWith("http") &&
-    typeof a.name === "string" &&
-    typeof a.type === "string"
-  );
-}
-
-const SELECT_COLUMNS =
-  "id, name, category, message, attachment_urls, created_at, is_approved, is_pinned";
-
-function mapRowToPost(row: any): GuestbookPost {
-  return {
-    id: row.id,
-    name: row.name,
-    category: row.category,
-    message: row.message,
-    attachmentUrls: (row.attachment_urls ?? [])
-      .filter(isAttachment)
-      .slice(0, MAX_ATTACHMENTS),
-    createdAt: row.created_at,
-    isApproved: row.is_approved,
-    isPinned: row.is_pinned ?? false,
-  };
+function createUseCase(): GuestbookUseCase {
+  return new GuestbookUseCase(new SupabaseGuestbookRepository());
 }
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const limit = Math.min(
-    Math.max(parseInt(searchParams.get("limit") ?? "50", 10) || 50, 1),
-    100,
-  );
+  const limit = parseInt(searchParams.get("limit") ?? "50", 10) || 50;
 
   try {
-    const supabase = createSupabaseServerClient();
-
-    const { data, error } = await supabase
-      .from("guestbook")
-      .select(SELECT_COLUMNS)
-      .eq("is_approved", true)
-      .order("is_pinned", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(limit);
-
-    if (error) throw error;
-
-    return NextResponse.json({
-      data: (data ?? []).map(mapRowToPost),
-      error: null,
-    });
-  } catch (err: any) {
+    const posts = await createUseCase().listApproved(limit);
+    return NextResponse.json({ data: posts, error: null });
+  } catch (err) {
     return NextResponse.json(
-      { data: [], error: err.message },
+      { data: [], error: errorMessage(err) },
       { status: 500 },
     );
   }
@@ -97,62 +41,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const category = body.category as GuestbookCategory;
-  if (!CATEGORIES.includes(category)) {
-    return NextResponse.json(
-      { data: null, error: `Category must be one of: ${CATEGORIES.join(", ")}` },
-      { status: 400 },
-    );
-  }
-
-  const message = (body.message ?? "").trim();
-  if (!message) {
-    return NextResponse.json(
-      { data: null, error: "Message is required" },
-      { status: 400 },
-    );
-  }
-  if (message.length > MAX_MESSAGE_LENGTH) {
-    return NextResponse.json(
-      { data: null, error: `Message must be under ${MAX_MESSAGE_LENGTH} characters` },
-      { status: 400 },
-    );
-  }
-
-  const name = (body.name ?? "").trim().slice(0, MAX_NAME_LENGTH) || null;
-
-  const attachmentUrls = Array.isArray(body.attachmentUrls)
-    ? body.attachmentUrls.filter(isAttachment).slice(0, MAX_ATTACHMENTS)
-    : [];
-
   try {
-    const supabase = createSupabaseServerClient();
-
-    const { data, error } = await supabase
-      .from("guestbook")
-      .insert({
-        name,
-        category,
-        message,
-        attachment_urls: attachmentUrls,
-        is_approved: true,
-      })
-      .select(SELECT_COLUMNS)
-      .single();
-
-    if (error) throw error;
-
+    const post = await createUseCase().createPost(body);
+    return NextResponse.json({ data: post, error: null }, { status: 201 });
+  } catch (err) {
     return NextResponse.json(
-      {
-        data: mapRowToPost(data),
-        error: null,
-      },
-      { status: 201 },
-    );
-  } catch (err: any) {
-    return NextResponse.json(
-      { data: null, error: err.message },
-      { status: 500 },
+      { data: null, error: errorMessage(err) },
+      { status: 400 },
     );
   }
 }
@@ -177,33 +72,13 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  if (!body.id) {
-    return NextResponse.json(
-      { data: null, error: "Missing post id" },
-      { status: 400 },
-    );
-  }
-
   try {
-    const supabase = createSupabaseServerClient();
-
-    const { data, error } = await supabase
-      .from("guestbook")
-      .update({ is_pinned: body.pinned === true })
-      .eq("id", body.id)
-      .select(SELECT_COLUMNS)
-      .single();
-
-    if (error) throw error;
-
-    return NextResponse.json({
-      data: mapRowToPost(data),
-      error: null,
-    });
-  } catch (err: any) {
+    const post = await createUseCase().setPinned(body.id ?? "", body.pinned === true);
+    return NextResponse.json({ data: post, error: null });
+  } catch (err) {
     return NextResponse.json(
-      { data: null, error: err.message },
-      { status: 500 },
+      { data: null, error: errorMessage(err) },
+      { status: 400 },
     );
   }
 }

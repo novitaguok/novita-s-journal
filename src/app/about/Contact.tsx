@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Rule, Annotation, CodeBlock } from "../../components/Shared";
-import { Section } from "../../types";
 
 const SOCIAL_LINKS = [
   {

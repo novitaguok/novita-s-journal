@@ -379,8 +379,7 @@ function ArticleListContent() {
                         marginLeft: "auto",
                       }}
                     >
-                      {article.readTime}m · {article.views.toLocaleString()}{" "}
-                      views
+                      {article.readTime}m
                     </span>
                   </div>
                   <h3 style={articleTitle}>{article.title}</h3>

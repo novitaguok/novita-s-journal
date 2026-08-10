@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/src/lib/supabase/server";
 import { randomUUID } from "crypto";
+import { errorMessage } from "@/src/lib/errors";
 
 export const runtime = "nodejs";
 
@@ -86,9 +87,9 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 },
     );
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
-      { data: null, error: err.message },
+      { data: null, error: errorMessage(err) },
       { status: 500 },
     );
   }
