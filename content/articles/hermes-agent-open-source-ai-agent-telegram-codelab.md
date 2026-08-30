@@ -9,7 +9,7 @@ author: "Novita (郭瑩慧)"
 
 That question sent me down a rabbit hole last weekend, and the answer turned out to be **Hermes Agent** — the open-source AI agent by [Nous Research](https://nousresearch.com) (the lab behind the Hermes model family). It's MIT-licensed, self-hosted, and at over 230k GitHub stars, it's clearly struck a nerve.
 
-The usual "self-hosted agent" story ends with a $5/month VPS and a stack of API keys. I wanted to know: can a reader with **no budget at all** still get a real, working agent in their Telegram today? So I tested the entire flow in a throwaway sandbox before writing this — every command below is verified to work as of Hermes Agent v0.20.6 (August 2026).
+The usual "self-hosted agent" story ends with a $5/month VPS and a stack of API keys. I wanted to know: can a reader with **no budget at all** still get a real, working agent in their Telegram today? So I tested the entire flow in a throwaway sandbox before writing this — every command below is verified to work as of Hermes Agent v0.20.6 (August 2026). Then I went one step further and [pre-baked the whole environment into a sandbox](https://github.com/novitaguok/hermes-agent-telegram-codelab) you can open with one click, so you can skip the install entirely.
 
 Spoiler: yes, fully free. Let's build it. 🚀
 
@@ -53,54 +53,31 @@ No credit card anywhere. If you already have a GitHub account and a Telegram acc
 
 - A GitHub account (free tier is fine)
 - A Telegram account
-- About 30–45 minutes
+- About 15–20 minutes
 
-### Step 1 — Open a free sandbox
+### Step 1 — Open your free sandbox (one click)
 
-We'll use a GitHub Codespace as our "server." The default universal image already includes everything Hermes needs (Python, Node, git, build tools), which saves us from the dependency-hunting I had to do when I tested this in a bare container.
+I've prepared a **companion sandbox repo** for this codelab: [novitaguok/hermes-agent-telegram-codelab](https://github.com/novitaguok/hermes-agent-telegram-codelab). It's a GitHub Codespaces environment with a **pre-baked image** — Hermes Agent, its full runtime, and a free keyless model provider are already installed and configured before you ever see a terminal.
 
-1. Go to [github.com/codespaces/templates](https://github.com/codespaces/templates) (or click the green **Code** button on any of your repos → **Codespaces** tab).
-2. Pick a template — **Blank** or any starter is fine.
-3. Wait for the codespace to build (~1 minute). You'll get a browser-based terminal running Ubuntu.
+1. Open [codespaces.new/novitaguok/hermes-agent-telegram-codelab](https://codespaces.new/novitaguok/hermes-agent-telegram-codelab) and sign in with GitHub.
+2. Pick the default **2-core** machine type (that's the free one) and click **Create**.
+3. Wait a minute or two while the image downloads. The terminal greets you with a `⚕ Hermes Agent vX.X.X is ready` banner — that's your cue that everything is installed.
 
-> **⏳ Free-tier math:** the default codespace is a 2-core machine, so 120 free core-hours = about 60 hours of runtime per month. Plenty for a codelab — just remember to stop it (we'll cover that at the end).
-
-### Step 2 — Install Hermes Agent
-
-In your codespace terminal, run the official installer:
-
-```bash
-curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-```
-
-The installer is refreshingly thorough — it brings its own `uv`, Python 3.11, Node.js, ripgrep, and ffmpeg. It takes a few minutes (it's installing a full agent runtime, not a CLI toy), then prints a summary ending with something like:
-
-```plaintext
-⚡ 'hermes' was linked and is ready to use
-```
-
-Verify it:
+When it's up, verify it yourself:
 
 ```bash
 hermes --version
 ```
 
-You should see `Hermes Agent v0.20.x`. If the `hermes` command isn't found immediately, run `source ~/.bashrc` or open a fresh terminal first.
+> **⏳ Free-tier math:** the codespace is a 2-core machine, so 120 free core-hours = about 60 hours of runtime per month. Plenty for a codelab — just remember to stop it (we'll cover that at the end).
 
-### Step 3 — Configure a free model (no API key!)
+**Why a pre-baked image?** The first time I tested this codelab, I ran the install manually in a bare sandbox — and hit missing `xz`, missing `libatomic`, and a node-gyp build that needed `python3`/`make`/`g++`. The standard Codespaces image has all of that, but the install still takes several minutes of downloading. So I baked the entire thing — Ubuntu, system prereqs, the official installer, and the model config — into a Docker image that GitHub Actions rebuilds automatically. Your sandbox starts ready-to-chat in about a minute.
 
-This is the step that usually costs money, so it's my favorite part. Hermes ships with a **keyless free provider** called `opencode-free` — it routes to OpenCode's free model tier anonymously. No account, no API key, no credit card.
+> **🔧 Prefer the DIY path?** If you'd rather install everything yourself (in any Codespace template, or on your own Linux box), it's two commands: `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash`, then `hermes config set model.provider opencode-free && hermes config set model.default mimo-v2.5-free`. The rest of this codelab works identically.
 
-Set it as your default:
+**About that free model:** the pre-baked config uses a keyless provider called `opencode-free` — it routes to OpenCode's free model tier anonymously. No account, no API key, no credit card. (Why `mimo-v2.5-free` specifically? I tested the free catalog end-to-end — that model, along with `nemotron-3.5-lightning-free` and `laguna-s-2.1-free`, responded reliably. Free models rotate over time, so if one acts up, run `hermes model` and pick another one ending in `-free`.)
 
-```bash
-hermes config set model.provider opencode-free
-hermes config set model.default mimo-v2.5-free
-```
-
-(Why `mimo-v2.5-free` specifically? I tested the free catalog end-to-end — that model, along with `nemotron-3.5-lightning-free` and `laguna-s-2.1-free`, responded reliably. Free models rotate over time, so if one acts up, run `hermes model` and pick another one ending in `-free`.)
-
-Now the moment of truth — your first conversation:
+If you'd like to see the machinery working before connecting Telegram, have a quick chat right in the terminal:
 
 ```bash
 hermes chat -q "Say hello and tell me which model you are" --oneshot
@@ -110,7 +87,7 @@ You should get a real reply streamed into your terminal. **That's an LLM answeri
 
 > **💡 Honest expectations:** free models are shared infrastructure. They're great for chat, learning, and light tool use, but they're not frontier models. The beautiful thing about Hermes is that everything we build today carries over unchanged if you later plug in a paid provider — swap it with one `hermes model` command, and your bot, memory, and config all stay.
 
-### Step 4 — Create your Telegram bot
+### Step 2 — Create your Telegram bot
 
 Time to give the agent a phone number… well, a Telegram handle.
 
@@ -128,28 +105,32 @@ Treat this token like a password — anyone holding it controls your bot. If it 
 
 **Optional but nice:** while you're in BotFather, use `/setuserpic` to give your bot an avatar and `/setdescription` to write its intro text. A bot with a face feels much more alive.
 
-### Step 5 — Get your Telegram user ID
+### Step 3 — Get your Telegram user ID
 
 Hermes doesn't let strangers control your agent — it authenticates you by your numeric Telegram user ID (not your username).
 
 Message **@userinfobot** ([t.me/userinfobot](https://t.me/userinfobot)) and it instantly replies with a number like `123456789`. Save it.
 
-### Step 6 — Wire Hermes to Telegram
+### Step 4 — Wire Hermes to Telegram
 
-Back in the codespace terminal, add two environment variables to Hermes's config:
+When your sandbox was created, it seeded a credentials file at `~/.hermes/.env` with two placeholder values. Open it in the terminal editor:
 
 ```bash
-cat >> ~/.hermes/.env << 'EOF'
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrSTUvwxYZ
-TELEGRAM_ALLOWED_USERS=123456789
-EOF
+nano ~/.hermes/.env
 ```
 
-Replace the token with your real one from Step 4, and the user ID with the one from Step 5. (If you want a friend to share the bot, comma-separate their IDs.)
+Replace the placeholders — the token from Step 2 and the user ID from Step 3 — so the file looks like this:
+
+```plaintext
+TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrSTUvwxYZ
+TELEGRAM_ALLOWED_USERS=123456789
+```
+
+Save with `Ctrl+O`, `Enter`, then exit with `Ctrl+X`. (If you want a friend to share the bot, comma-separate their user IDs.)
 
 That's the entire integration. I love how un-ceremonial this is — no webhook tunnels, no TLS certs, no port forwarding. Hermes connects to Telegram via **long polling** (outbound requests only), which is exactly why it works inside a sandbox with no public URL.
 
-### Step 7 — Start the gateway and chat!
+### Step 5 — Start the gateway and chat!
 
 Launch the messaging gateway in the foreground:
 
@@ -171,7 +152,7 @@ A few things worth trying in that first chat:
 - **Ask it a question about your sandbox** — "What OS are you running on? How much disk is free?" It'll use its terminal tool on the codespace to find out.
 - **`/usage`** — built-in slash command showing token usage and estimated cost (mostly $0.00 here, which is always a nice sight).
 
-### Step 8 — Go beyond the basics (optional)
+### Step 6 — Go beyond the basics (optional)
 
 **A dedicated topic workspace.** Send `/topic` to the bot to enable multi-session mode — then each Telegram topic you create becomes an isolated conversation with its own history. Great for separating "work questions" from "random curiosity."
 
@@ -186,14 +167,16 @@ Then restart the gateway and send the bot a voice note. It'll reply to what you 
 
 **Scheduled tasks.** Ask the agent in chat to schedule a cron job ("Every morning at 8, send me a summary of AI news") and set the chat as the delivery channel with `/sethome`. The docs' [cron guide](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron) covers delivery options.
 
-### Step 9 — Be a good free-tier citizen
+### Step 7 — Be a good free-tier citizen
 
 The gateway keeps your codespace busy, which keeps burning those free core-hours. When you're done playing:
 
 - Press `Ctrl+C` in the terminal to stop the gateway.
 - In the codespace window, open the command palette (`F1`) → **Codespaces: Stop Codespace** (or find it under the three-dot menu on [github.com/codespaces](https://github.com/codespaces)).
 
-Everything persists — codespace storage keeps your installed Hermes, its config, and its memory. Next time you start the codespace, it's a 30-second boot back to a live bot: `hermes gateway run`.
+Everything persists — stop/start keeps your installed Hermes, its config, its memory, and the bot token you pasted. Next time you start the codespace, it's a 30-second boot back to a live bot: `hermes gateway run`.
+
+> **⚠️ Rebuild is the reset button:** stopping/starting keeps everything, but a full **Rebuild** wipes the machine back to the pre-baked image — including `~/.hermes/.env` and the agent's memory. If you rebuild, just re-paste your token (the file gets re-seeded with placeholders automatically).
 
 > **⚠️ One thing to know:** the free storage allowance is 15 GB per month. A Hermes install with its Python environment fits comfortably, but don't let the agent download giant datasets into the sandbox. You can check usage on your [Codespaces settings page](https://github.com/settings/codespaces).
 
@@ -205,7 +188,6 @@ I hit most of these while testing, so you don't have to:
 
 | Problem | Fix |
 |---|---|
-| `hermes: command not found` after install | `source ~/.bashrc`, or open a new terminal |
 | Model error: "Model is unavailable" | Free models rotate. Run `hermes model` and switch to another `-free` model |
 | Gateway: "Telegram bot token rejected" | Typo in the token — copy it again from BotFather, or `/revoke` + `/token` to regenerate |
 | Bot replies "unauthorized" | Your user ID doesn't match `TELEGRAM_ALLOWED_USERS` — re-check with @userinfobot |
@@ -247,6 +229,7 @@ If you follow the codelab, I'd love to hear how it went — find me in the guest
 
 - [Hermes Agent official docs](https://hermes-agent.nousresearch.com/docs/)
 - [Hermes Agent on GitHub](https://github.com/nousresearch/hermes-agent) (MIT license)
+- [This codelab's companion sandbox repo](https://github.com/novitaguok/hermes-agent-telegram-codelab)
 - [Telegram setup guide](https://hermes-agent.nousresearch.com/docs/user-guide/messaging/telegram/)
 - [Hermes Agent quickstart](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart)
 - [GitHub Codespaces — pricing and free tier](https://github.com/features/codespaces)
