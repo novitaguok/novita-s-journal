@@ -61,7 +61,7 @@ I've prepared a **companion sandbox repo** for this codelab: [novitaguok/hermes-
 
 1. Open [codespaces.new/novitaguok/hermes-agent-telegram-codelab](https://codespaces.new/novitaguok/hermes-agent-telegram-codelab) and sign in with GitHub.
 2. Pick the default **2-core** machine type (that's the free one) and click **Create**.
-3. Wait a minute or two while the image downloads. The terminal greets you with a `⚕ Hermes Agent vX.X.X is ready` banner — that's your cue that everything is installed.
+3. Wait a few minutes while the image downloads — the very first creation in your region pulls a fresh copy, so it's the slowest it will ever be. The terminal greets you with a `⚕ Hermes Agent vX.X.X is ready` banner — that's your cue that everything is installed.
 
 When it's up, verify it yourself:
 
