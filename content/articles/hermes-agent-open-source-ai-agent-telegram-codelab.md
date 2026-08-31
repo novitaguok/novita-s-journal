@@ -71,8 +71,6 @@ hermes --version
 
 > **⏳ Free-tier math:** the codespace is a 2-core machine, so 120 free core-hours = about 60 hours of runtime per month. Plenty for a codelab — just remember to stop it (we'll cover that at the end).
 
-**Why a pre-baked image?** The first time I tested this codelab, I ran the install manually in a bare sandbox — and hit missing `xz`, missing `libatomic`, and a node-gyp build that needed `python3`/`make`/`g++`. The standard Codespaces image has all of that, but the install still takes several minutes of downloading. So I baked the entire thing — Ubuntu, system prereqs, the official installer, and the model config — into a Docker image that GitHub Actions rebuilds automatically. Your sandbox starts ready-to-chat in about a minute.
-
 > **🔧 Prefer the DIY path?** If you'd rather install everything yourself (in any Codespace template, or on your own Linux box), it's two commands: `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash`, then `hermes config set model.provider opencode-free && hermes config set model.default mimo-v2.5-free`. The rest of this codelab works identically.
 
 **About that free model:** the pre-baked config uses a keyless provider called `opencode-free` — it routes to OpenCode's free model tier anonymously. No account, no API key, no credit card. (Why `mimo-v2.5-free` specifically? I tested the free catalog end-to-end — that model, along with `nemotron-3.5-lightning-free` and `laguna-s-2.1-free`, responded reliably. Free models rotate over time, so if one acts up, run `hermes model` and pick another one ending in `-free`.)
